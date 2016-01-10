@@ -32,6 +32,9 @@ module GitlabWebHook
     get '/build_now', &build_now
     post '/build_now', &build_now
 
+    post '/build_now/:project_name' do
+    end
+
     error = lambda do
       unknown_route
     end
@@ -87,6 +90,7 @@ module GitlabWebHook
           '   - /ping',
           '   - /notify_commit',
           '   - /build_now',
+          '   - /build_now/:project_name',
           'See https://github.com/elvanja/jenkins-gitlab-hook-plugin for details'
       ].join("\n")
       logger.warning(message)
