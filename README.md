@@ -182,15 +182,15 @@ For this option to become active, just turn it on in Jenkins global configuratio
 
 The plugin can be configured to automatically create projects when the hook is
 activated by a GitLab repo unknown to Jenkins. The template must be an existing
-Jenkins project, that could be an already running one or be spefically created
+Jenkins project, that could be an already running one or be specifically created
 for this purpose. The template can be a disabled project, because the brand
-new project will be enabled on creation. To enable this feature is enough to
-supply values under the 'Advanced' part of the plugin section in the Jenkins
-global configuration page.
+new project will be enabled on creation. To enable this feature, supply values 
+under the 'Advanced' part of the plugin section in the Jenkins global 
+configuration page.
 
 
 The simplest case is the *last resort template*, where a single template is
-used for every input webhook for an unknown projec. To get finer clasification, distinct templates
+used for every input webhook for an unknown project. To get finer clasification, distinct templates
 can also be assigned to different GitLab groups, which can be useful, for
 example, to handle android development based on gradle projects while the
 remaining java repositories are created with a maven template. Group matching
