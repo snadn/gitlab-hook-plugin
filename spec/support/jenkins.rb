@@ -33,6 +33,7 @@ class Jenkins::Server
     download_plugin 'scm-api', '0.1', "#{workdir}/plugins"
     download_plugin 'git-client', '1.4.4', "#{workdir}/plugins"
     download_plugin 'ssh-agent', '1.3', "#{workdir}/plugins"
+    download_plugin 'multiple-scms', '0.4', "#{workdir}/plugins"
 
     FileUtils.cp_r Dir.glob('work/*'), workdir
 
