@@ -10,6 +10,7 @@ feature 'GitLab WebHook' do
 
   testrepodir = Dir.mktmpdir [ 'testrepo' , '.git' ]
   tagsrepodir = Dir.mktmpdir [ 'tagsrepo' , '.git' ]
+  multiscmdir = Dir.mktmpdir [ 'multiscm' , '.git' ]
   xtrarepodir = Dir.mktmpdir [ 'xtrarepo' , '.git' ]
 
   before(:all) do
@@ -20,6 +21,10 @@ feature 'GitLab WebHook' do
       outfd.write( infd.read % { tagsrepodir: tagsrepodir } )
       infd.close
     end
+    FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), multiscmdir
+    File.open('work/jobs/multiscm/config.xml', 'w') do |outfd|
+      outfd.write File.read('work/jobs/multiscm/config.xml.erb') % { multiscmdir: multiscmdir }
+    end
     FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), xtrarepodir
     File.open('work/jobs/subdirjob/config.xml', 'w') do |outfd|
       outfd.write File.read('work/jobs/subdirjob/config.xml.erb') % { xtrarepodir: xtrarepodir }
@@ -29,6 +34,7 @@ feature 'GitLab WebHook' do
   end
 
   after(:all) do
+    FileUtils.remove_dir multiscmdir
     FileUtils.remove_dir xtrarepodir
     FileUtils.remove_dir tagsrepodir
     FileUtils.remove_dir testrepodir
