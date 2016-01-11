@@ -144,6 +144,18 @@ feature 'GitLab WebHook' do
 
   end
 
+  feature 'Multiple SCMs jobs' do
+
+    scenario 'Builds standard push' do
+      incoming_payload 'first_push', 'multiscm', multiscmdir
+      wait_for '/job/multiscm', "//a[@href='/job/multiscm/1/']"
+      expect(page).to have_xpath("//a[@href='/job/multiscm/1/']")
+      wait_idle
+      expect(@server.result('multiscm', 1)).to eq 'SUCCESS'
+    end
+
+  end
+
   feature 'Legacy (<7.4.3) merge request handling' do
 
     scenario 'Finds cloneable project' do
