@@ -104,14 +104,14 @@ module GitlabWebHook
     end
 
     def local_clone
-      local = scm.extensions.get RelativeTargetDirectory.java_class
+      local = @matching_scms.first.extensions.get RelativeTargetDirectory.java_class
       return local.relative_target_dir if local
     end
 
     private
 
     def pre_build_merge
-      @pre_build_merge ||= scm.extensions.get PreBuildMerge.java_class
+      @pre_build_merge ||= @matching_scms.first.extensions.get PreBuildMerge.java_class
     end
 
     def matches_repo_uri?(details_uri)
@@ -125,6 +125,7 @@ module GitlabWebHook
     end
 
     def matching_scms(details_uri)
+      # NOTE : what about multiple entries on @matching_scms ??
       @matching_scms ||= scms.select do |scm|
         scm.repositories.find do |repo|
           repo.getURIs().find do |project_repo_uri|
