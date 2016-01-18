@@ -7,6 +7,7 @@ require_relative 'exceptions/not_found_exception'
 require_relative 'use_cases/process_commit'
 require_relative 'use_cases/process_delete_commit'
 require_relative 'use_cases/process_merge_request'
+require_relative 'services/get_jenkins_projects'
 require_relative 'services/parse_request'
 
 java_import Java.org.jruby.exceptions.RaiseException
@@ -42,10 +43,11 @@ module GitlabWebHook
 
     def process_projects(action)
       details = parse_request
+      projects = GetJenkinsProjects.new.matching_uri details
       if details.classic?
-        messages = details.delete_branch_commit? ? ProcessDeleteCommit.new.with(details) : ProcessCommit.new.with(details, action)
+        messages = details.delete_branch_commit? ? ProcessDeleteCommit.new.with(details, projects) : ProcessCommit.new.with(details, projects, action)
       else
-        messages = ProcessMergeRequest.new.with(details)
+        messages = ProcessMergeRequest.new.with(details, projects)
       end
       logger.info(messages.join("\n"))
       messages.collect { |message| message.gsub("\n", '<br>') }.join("<br>")
