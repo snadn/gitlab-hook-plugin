@@ -104,14 +104,14 @@ module GitlabWebHook
     end
 
     def local_clone
-      local = @matching_scms and @matching_scms.any? and @matching_scms.first.extensions.get RelativeTargetDirectory.java_class
+      local = matching_scms and matching_scms.any? and matching_scms.first.extensions.get RelativeTargetDirectory.java_class
       return local.relative_target_dir if local
     end
 
     private
 
     def pre_build_merge
-      @pre_build_merge ||= @matching_scms and @matching_scms.any? and @matching_scms.first.extensions.get PreBuildMerge.java_class
+      @pre_build_merge ||= matching_scms and matching_scms.any? and matching_scms.first.extensions.get PreBuildMerge.java_class
     end
 
     def matches_repo_uri?(details_uri)
@@ -121,12 +121,11 @@ module GitlabWebHook
     end
 
     def matching_scms?(details_uri)
-      matching_scms(details_uri).any?
+      match_scms(details_uri).any?
     end
 
-    def matching_scms(details_uri)
-      # NOTE : what about multiple entries on @matching_scms ??
-      @matching_scms ||= scms.select do |scm|
+    def match_scms(details_uri)
+      @matching_scms = scms.select do |scm|
         scm.repositories.find do |repo|
           repo.getURIs().find do |project_repo_uri|
             details_uri.matches?(project_repo_uri)
@@ -157,7 +156,7 @@ module GitlabWebHook
       matched_refspecs = []
       matched_branch = nil
 
-      matched_scm = @matching_scms.find do |scm|
+      matched_scm = matching_scms.find do |scm|
         matched_branch = scm.branches.find do |scm_branch|
           scm.repositories.find do |repo|
             # When BranchSpec seems to be a 'refs' style, we use the reference supplied by
@@ -188,7 +187,7 @@ module GitlabWebHook
         end
       end
 
-      matched_scm = @matching_scms.find { |scm| scm.buildChooser.java_kind_of?(InverseBuildChooser) } unless matched_scm
+      matched_scm = matching_scms.find { |scm| scm.buildChooser.java_kind_of?(InverseBuildChooser) } unless matched_scm
       build_chooser = matched_scm.buildChooser if matched_scm
       build_chooser && build_chooser.java_kind_of?(InverseBuildChooser) ? matched_branch.nil? : !matched_branch.nil?
     end
