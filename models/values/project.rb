@@ -39,10 +39,10 @@ module GitlabWebHook
     attr_reader :jenkins_project, :scms, :logger
     attr_reader :matching_scms
 
-    def initialize(jenkins_project, logger = Java.java.util.logging.Logger.getLogger(Project.class.name))
+    def initialize(jenkins_project)
       raise ArgumentError.new("jenkins project is required") unless jenkins_project
       @jenkins_project = jenkins_project
-      @logger = logger
+      @logger = Java.java.util.logging.Logger.getLogger(self.class.name)
       setup_scms
     end
 

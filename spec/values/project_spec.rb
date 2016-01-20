@@ -6,8 +6,7 @@ module GitlabWebHook
 
     let(:scm) { double(GitSCM) }
     let(:jenkins_project) { double(AbstractProject, fullName: 'diaspora') }
-    let(:logger) { double }
-    let(:subject) { Project.new(jenkins_project, logger) }
+    let(:subject) { Project.new(jenkins_project) }
 
     context 'when initializing' do
       it 'requires jenkins project' do
@@ -113,7 +112,6 @@ module GitlabWebHook
         end
 
         it 'and merged branch matchs' do
-          expect(logger).to receive(:info)
           expect(subject).to receive(:merge_to?) { true }
           expect(subject.matches?(details)).to be
         end
@@ -148,7 +146,6 @@ module GitlabWebHook
 
         it 'does not match when branch parameter is not of supported type' do
           Project::BRANCH_NAME_PARAMETER_ACCEPTED_TYPES.each { |type| allow(branch_name_parameter).to receive(:java_kind_of?).with(type) { false } }
-          expect(logger).to receive(:warning)
           expect(subject.matches?(details)).not_to be
         end
 
