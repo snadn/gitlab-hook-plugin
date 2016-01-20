@@ -1,25 +1,16 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<maven2-moduleset plugin="maven-plugin@2.12.1">
+<project>
   <actions/>
   <description></description>
   <keepDependencies>false</keepDependencies>
-  <properties>
-    <jenkins.model.BuildDiscarderProperty>
-      <strategy class="hudson.tasks.LogRotator">
-        <daysToKeep>-1</daysToKeep>
-        <numToKeep>10</numToKeep>
-        <artifactDaysToKeep>-1</artifactDaysToKeep>
-        <artifactNumToKeep>-1</artifactNumToKeep>
-      </strategy>
-    </jenkins.model.BuildDiscarderProperty>
-  </properties>
-  <scm class="org.jenkinsci.plugins.multiplescms.MultiSCM" plugin="multiple-scms@0.5">
+  <properties/>
+  <scm class="org.jenkinsci.plugins.multiplescms.MultiSCM" plugin="multiple-scms@0.4">
     <scms>
-      <hudson.plugins.git.GitSCM plugin="git@2.4.1">
+      <hudson.plugins.git.GitSCM plugin="git@2.0">
         <configVersion>2</configVersion>
         <userRemoteConfigs>
           <hudson.plugins.git.UserRemoteConfig>
-            <url>localhost:%{multiscmdir}</url>
+            <url>localhost:%{multiscmdir1}</url>
           </hudson.plugins.git.UserRemoteConfig>
         </userRemoteConfigs>
         <branches>
@@ -31,11 +22,11 @@
         <submoduleCfg class="list"/>
         <extensions/>
       </hudson.plugins.git.GitSCM>
-      <hudson.plugins.git.GitSCM plugin="git@2.4.1">
+      <hudson.plugins.git.GitSCM plugin="git@2.0">
         <configVersion>2</configVersion>
         <userRemoteConfigs>
           <hudson.plugins.git.UserRemoteConfig>
-            <url>git.local:foo/foo.api.git</url>
+            <url>localhost:%{multiscmdir2}</url>
           </hudson.plugins.git.UserRemoteConfig>
         </userRemoteConfigs>
         <branches>
@@ -45,104 +36,17 @@
         </branches>
         <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
         <submoduleCfg class="list"/>
-        <extensions>
-          <hudson.plugins.git.extensions.impl.CloneOption>
-            <shallow>true</shallow>
-            <noTags>false</noTags>
-            <reference></reference>
-          </hudson.plugins.git.extensions.impl.CloneOption>
-          <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
-            <relativeTargetDir>foo.api</relativeTargetDir>
-          </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
-        </extensions>
-      </hudson.plugins.git.GitSCM>
-      <hudson.plugins.git.GitSCM plugin="git@2.4.1">
-        <configVersion>2</configVersion>
-        <userRemoteConfigs>
-          <hudson.plugins.git.UserRemoteConfig>
-            <url>git.local:foo/foo.data.git</url>
-          </hudson.plugins.git.UserRemoteConfig>
-        </userRemoteConfigs>
-        <branches>
-          <hudson.plugins.git.BranchSpec>
-            <name>*/master</name>
-          </hudson.plugins.git.BranchSpec>
-        </branches>
-        <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
-        <submoduleCfg class="list"/>
-        <extensions>
-          <hudson.plugins.git.extensions.impl.CloneOption>
-            <shallow>true</shallow>
-            <noTags>false</noTags>
-            <reference></reference>
-          </hudson.plugins.git.extensions.impl.CloneOption>
-          <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
-            <relativeTargetDir>foo.data</relativeTargetDir>
-          </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
-        </extensions>
-      </hudson.plugins.git.GitSCM>
-      <hudson.plugins.git.GitSCM plugin="git@2.4.1">
-        <configVersion>2</configVersion>
-        <userRemoteConfigs>
-          <hudson.plugins.git.UserRemoteConfig>
-            <url>git.local:foo/foo.core.git</url>
-          </hudson.plugins.git.UserRemoteConfig>
-        </userRemoteConfigs>
-        <branches>
-          <hudson.plugins.git.BranchSpec>
-            <name>*/master</name>
-          </hudson.plugins.git.BranchSpec>
-        </branches>
-        <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
-        <submoduleCfg class="list"/>
-        <extensions>
-          <hudson.plugins.git.extensions.impl.CloneOption>
-            <shallow>true</shallow>
-            <noTags>false</noTags>
-            <reference></reference>
-          </hudson.plugins.git.extensions.impl.CloneOption>
-          <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
-            <relativeTargetDir>foo.core</relativeTargetDir>
-          </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
-        </extensions>
+        <extensions/>
       </hudson.plugins.git.GitSCM>
     </scms>
   </scm>
-  <assignedNode />
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers/>
   <concurrentBuild>false</concurrentBuild>
-  <rootModule>
-    <groupId>foo</groupId>
-    <artifactId>foo.parent</artifactId>
-  </rootModule>
-  <goals>-U clean install</goals>
-  <aggregatorStyleBuild>true</aggregatorStyleBuild>
-  <incrementalBuild>false</incrementalBuild>
-  <ignoreUpstremChanges>true</ignoreUpstremChanges>
-  <archivingDisabled>false</archivingDisabled>
-  <siteArchivingDisabled>false</siteArchivingDisabled>
-  <fingerprintingDisabled>false</fingerprintingDisabled>
-  <resolveDependencies>false</resolveDependencies>
-  <processPlugins>false</processPlugins>
-  <mavenValidationLevel>-1</mavenValidationLevel>
-  <runHeadless>false</runHeadless>
-  <disableTriggerDownstreamProjects>false</disableTriggerDownstreamProjects>
-  <blockTriggerWhenBuilding>true</blockTriggerWhenBuilding>
-  <settings class="jenkins.mvn.DefaultSettingsProvider"/>
-  <globalSettings class="jenkins.mvn.DefaultGlobalSettingsProvider"/>
-  <reporters/>
+  <builders/>
   <publishers/>
   <buildWrappers/>
-  <prebuilders/>
-  <postbuilders/>
-  <runPostStepsIfResult>
-    <name>FAILURE</name>
-    <ordinal>2</ordinal>
-    <color>RED</color>
-    <completeBuild>true</completeBuild>
-  </runPostStepsIfResult>
-</maven2-moduleset>
+</project>
