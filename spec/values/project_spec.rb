@@ -37,10 +37,10 @@ module GitlabWebHook
       end
     end
 
-    context 'when determining if matches repository url and branch' do
+    context 'when determining if matches branch' do
       let(:repository) { double('RemoteConfig', name: 'origin', getURIs: [double(URIish)]) }
       let(:refspec) { double('RefSpec') }
-      let(:details_uri) { double(RepositoryUri) }
+      let(:details_uri) { double(RepositoryUri, matches?: true) }
       let(:details) { double(RequestDetails, branch: 'master', repository_uri: details_uri, full_branch_reference: 'refs/heads/master', tagname: nil) }
       #let(:branch) { BranchSpec.new('origin/master') }
       let(:build_chooser) { double('BuildChooser') }
@@ -60,26 +60,15 @@ module GitlabWebHook
         allow(scm).to receive(:branches) { [BranchSpec.new('origin/master')] }
         allow(scm).to receive(:buildChooser) { build_chooser }
 
-        allow(details_uri).to receive(:matches?) { true }
-
         allow(repository).to receive(:getFetchRefSpecs) { [refspec] }
         allow(refspec).to receive(:matchSource).with(anything) { true }
+
+        expect(subject.matches_uri?(details_uri)).to be(true)
       end
 
       context 'it is not matching' do
         it 'when it is not buildable' do
           allow(subject).to receive(:buildable?) { false }
-          expect(subject.matches?(details)).not_to be
-        end
-
-        it 'when it is not git and is not multiple smsc' do
-          allow(scm).to receive(:java_kind_of?).with(GitSCM) { false }
-          allow(scm).to receive(:java_kind_of?).with(MultiSCM) { false }
-          expect(subject.matches?(details)).not_to be
-        end
-
-        it 'when repo uris do not match' do
-          allow(details_uri).to receive(:matches?) { false }
           expect(subject.matches?(details)).not_to be
         end
 
@@ -96,11 +85,11 @@ module GitlabWebHook
       end
 
       context 'it matches' do
-        it 'when is buildable, is git, repo uris match and branches match' do
+        it 'when is buildable, is git and branches match' do
           expect(subject.matches?(details)).to be
         end
 
-        it 'when is buildable, is multiple smsc, repo uris match and branches match' do
+        it 'when is buildable, is multiple smsc and branches match' do
           allow(scm).to receive(:java_kind_of?).with(GitSCM) { false }
           allow(scm).to receive(:java_kind_of?).with(MultiSCM) { true }
           expect(subject.matches?(details)).to be
@@ -206,7 +195,7 @@ module GitlabWebHook
 
       let(:repository) { double('RemoteConfig', name: 'origin', getURIs: [double(URIish)]) }
       let(:refspec) { double('RefSpec') }
-      let(:details_uri) { double(RepositoryUri) }
+      let(:details_uri) { double(RepositoryUri, matches?: true) }
       let(:details) { double(RequestDetails, branch: 'master', repository_uri: details_uri, full_branch_reference: nil) }
       let(:matching_branch) { double('BranchSpec', matches: true, name: 'origin') }
       let(:non_matching_branch) { double('BranchSpec', matches: false, name: 'origin') }
@@ -239,10 +228,10 @@ module GitlabWebHook
         allow(default_build_chooser).to receive(:java_kind_of?).with(InverseBuildChooser) { false }
         allow(inverse_build_chooser).to receive(:java_kind_of?).with(InverseBuildChooser) { true }
 
-        allow(details_uri).to receive(:matches?) { true }
-
         allow(repository).to receive(:getFetchRefSpecs) { [refspec] }
         allow(refspec).to receive(:matchSource).with(anything) { true }
+
+        expect(subject.matches_uri?(details_uri)).to be(true)
       end
 
       context 'when no scm applies' do
@@ -288,6 +277,7 @@ module GitlabWebHook
         allow(jenkins_project).to receive(:scm) { scm }
         allow(subject).to receive(:buildable?) { true }
         allow(subject).to receive(:parametrized?) { false }
+        expect(subject.matches_uri?(details.repository_uri)).to be(true)
       end
 
       context "branchspec is 'master'" do
@@ -336,6 +326,7 @@ module GitlabWebHook
         allow(jenkins_project).to receive(:scm) { scm }
         allow(subject).to receive(:buildable?) { true }
         allow(subject).to receive(:parametrized?) { false }
+        expect(subject.matches_uri?(details.repository_uri)).to be(true)
       end
 
       context "branchspec is 'master'" do
@@ -400,6 +391,7 @@ module GitlabWebHook
         allow(build_chooser).to receive(:java_kind_of?).with(InverseBuildChooser) { false }
 
         allow(subject).to receive(:buildable?) { true }
+        expect(subject.matches_uri?(details_uri)).to be(true)
       end
 
       let(:branch_name_parameter) { double(ParametersDefinitionProperty, name: 'BRANCH_NAME') }

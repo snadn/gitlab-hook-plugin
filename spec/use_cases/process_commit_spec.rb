@@ -15,6 +15,12 @@ module GitlabWebHook
 
     context 'with related projects' do
 
+      before :each do
+        expect(matching_project.matches_uri?(details.repository_uri)).to be(true)
+        expect(not_matching_project.matches_uri?(details.repository_uri)).to be(true)
+        expect(autocreate_match_project.matches_uri?(details.repository_uri)).to be(false)
+      end
+
       it 'calls action with found project and related details' do
         expect(action).to receive(:call).once.with(matching_project, details)
         subject.with(details, all_projects, action)

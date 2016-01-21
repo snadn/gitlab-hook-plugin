@@ -53,7 +53,6 @@ module GitlabWebHook
 
     def matches?(details, branch = false, exactly = false)
       return false unless buildable?
-      return false unless matches_uri?(details.repository_uri)
       if merge_to?( branch || details.branch )
         logger.info("project #{self} merge target matches #{branch || details.branch}")
         return true
