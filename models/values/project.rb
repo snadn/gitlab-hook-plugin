@@ -43,11 +43,12 @@ module GitlabWebHook
       raise ArgumentError.new("jenkins project is required") unless jenkins_project
       @jenkins_project = jenkins_project
       @logger = logger
+      @matching_scms = []
       setup_scms
     end
 
     def matches_uri?(details_uri)
-      return false unless (git? || multi_scm?)
+      return false unless scms.any?
       matching_scms?(details_uri)
     end
 
@@ -103,14 +104,14 @@ module GitlabWebHook
     end
 
     def local_clone
-      local = matching_scms and matching_scms.any? and matching_scms.first.extensions.get RelativeTargetDirectory.java_class
+      local = matching_scms.any? and matching_scms.first.extensions.get RelativeTargetDirectory.java_class
       return local.relative_target_dir if local
     end
 
     private
 
     def pre_build_merge
-      @pre_build_merge ||= matching_scms and matching_scms.any? and matching_scms.first.extensions.get PreBuildMerge.java_class
+      @pre_build_merge ||= matching_scms.any? and matching_scms.first.extensions.get PreBuildMerge.java_class
     end
 
     def matches_repo_uri?(details_uri)
@@ -191,20 +192,14 @@ module GitlabWebHook
       build_chooser && build_chooser.java_kind_of?(InverseBuildChooser) ? matched_branch.nil? : !matched_branch.nil?
     end
 
-    def git?
-      scm && scm.java_kind_of?(GitSCM)
-    end
-
-    def multi_scm?
-      scm && MultipleScmsPluginAvailable && scm.java_kind_of?(MultiSCM)
-    end
-
     def setup_scms
       @scms = []
-      if git?
-        @scms << scm
-      elsif multi_scm?
-        @scms.concat(scm.getConfiguredSCMs().select { |scm| scm.java_kind_of?(GitSCM) })
+      if scm
+        if scm.java_kind_of?(GitSCM)
+          @scms << scm
+        elsif MultipleScmsPluginAvailable && scm.java_kind_of?(MultiSCM)
+          @scms.concat(scm.getConfiguredSCMs().select { |scm| scm.java_kind_of?(GitSCM) })
+        end
       end
     end
   end

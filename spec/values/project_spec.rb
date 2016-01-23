@@ -17,8 +17,8 @@ module GitlabWebHook
 
     context 'when exposing jenkins project interface' do
       before(:each) do
-        allow(scm).to receive(:java_kind_of?).with(GitSCM) { true }
-        allow(scm).to receive(:java_kind_of?).with(MultiSCM) { false }
+        expect(scm).to receive(:java_kind_of?).with(GitSCM) { true }
+        expect(scm).not_to receive(:java_kind_of?)
         allow(jenkins_project).to receive(:scm) { scm }
       end
 
@@ -46,8 +46,8 @@ module GitlabWebHook
       let(:build_chooser) { double('BuildChooser') }
 
       before(:each) do
-        allow(scm).to receive(:java_kind_of?).with(GitSCM) { true }
-        allow(scm).to receive(:java_kind_of?).with(MultiSCM) { false }
+        expect(scm).to receive(:java_kind_of?).with(GitSCM) { true }
+        expect(scm).not_to receive(:java_kind_of?).with(MultiSCM)
         allow(jenkins_project).to receive(:scm) { scm }
 
         allow(subject).to receive(:buildable?) { true }
@@ -89,7 +89,7 @@ module GitlabWebHook
           expect(subject.matches?(details)).to be
         end
 
-        it 'when is buildable, is multiple smsc and branches match' do
+        it 'when is buildable, is multiple scms and branches match' do
           allow(scm).to receive(:java_kind_of?).with(GitSCM) { false }
           allow(scm).to receive(:java_kind_of?).with(MultiSCM) { true }
           expect(subject.matches?(details)).to be
@@ -215,8 +215,8 @@ module GitlabWebHook
         allow(inverse_git_scm).to receive(:buildChooser) { inverse_build_chooser }
         allow(inverse_git_scm).to receive(:extensions) { double('ExtensionsList', get: nil) }
 
-        allow(scm).to receive(:java_kind_of?).with(GitSCM) { false }
-        allow(scm).to receive(:java_kind_of?).with(MultiSCM) { true }
+        expect(scm).to receive(:java_kind_of?).with(GitSCM) { false }
+        expect(scm).to receive(:java_kind_of?).with(MultiSCM) { true }
         allow(scm).to receive(:getConfiguredSCMs) { [regular_git_scm, not_git_scm, inverse_git_scm] }
         allow(scm).to receive(:extensions) { double('ExtensionsList', get: nil) }
 
@@ -384,8 +384,8 @@ module GitlabWebHook
 
       before (:each) do
         allow(jenkins_project).to receive(:scm) { scm }
-        allow(scm).to receive(:java_kind_of?).with(GitSCM) { true }
-        allow(scm).to receive(:java_kind_of?).with(MultiSCM) { false }
+        expect(scm).to receive(:java_kind_of?).with(GitSCM) { true }
+        expect(scm).not_to receive(:java_kind_of?).with(MultiSCM)
 
         allow(refspec).to receive(:matchSource).with(anything) { true }
         allow(build_chooser).to receive(:java_kind_of?).with(InverseBuildChooser) { false }
@@ -428,8 +428,8 @@ module GitlabWebHook
 
     context 'when looking for "Merge before build" extension' do
       before(:each) do
-        allow(scm).to receive(:java_kind_of?).with(GitSCM) { true }
-        allow(scm).to receive(:java_kind_of?).with(MultiSCM) { false }
+        expect(scm).to receive(:java_kind_of?).with(GitSCM) { true }
+        expect(scm).not_to receive(:java_kind_of?).with(MultiSCM)
         allow(jenkins_project).to receive(:scm) { scm }
       end
 

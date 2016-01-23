@@ -15,6 +15,8 @@ module GitlabWebHook
 
     context 'with related projects' do
 
+      let(:projects_matching_uri) { [ matching_project , not_matching_project ] }
+
       before :each do
         expect(matching_project.matches_uri?(details.repository_uri)).to be(true)
         expect(not_matching_project.matches_uri?(details.repository_uri)).to be(true)
@@ -23,31 +25,30 @@ module GitlabWebHook
 
       it 'calls action with found project and related details' do
         expect(action).to receive(:call).once.with(matching_project, details)
-        subject.with(details, all_projects, action)
+        subject.with(details, projects_matching_uri, action)
       end
 
       it 'returns messages collected by calls to action' do
         expect(action).to receive(:call).once.with(matching_project, details).and_return('executed')
-        messages = subject.with(details, all_projects, action)
+        messages = subject.with(details, projects_matching_uri, action)
         expect(messages.size).to eq(1)
         expect(messages).to eq(%w(executed))
       end
 
-      context 'when automatic project creation is online' do
+      context 'when automatic project creation is on' do
         let(:new_project) { double(Project) }
         before(:each) { allow(settings).to receive(:automatic_project_creation?) { true } }
 
         it 'searches exactly matching projects' do
           expect(create_project_for_branch).not_to receive(:with)
           expect(action).to receive(:call).once
-          subject.with(details, all_projects, action)
+          subject.with(details, projects_matching_uri, action)
         end
 
         it 'creates a new project when no matching projects found' do
-          all_projects.delete(matching_project)
           expect(create_project_for_branch).to receive(:with).with(details).and_return(new_project)
           expect(action).to receive(:call).once.with(new_project, details).once
-          subject.with(details, all_projects, action)
+          subject.with(details, [ not_matching_project ] , action)
         end
       end
     end
