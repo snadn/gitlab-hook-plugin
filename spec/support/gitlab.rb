@@ -14,8 +14,8 @@ class GitLabMockup
     end
   end
 
-  def last
-    MyServer.last
+  def last reponame
+    MyServer.last reponame
   end
 
   def kill
@@ -36,16 +36,13 @@ class GitLabMockup
 
     class << self
 
-      def last
-        @@last.tap{ @@last = nil }
-      end
-
-      def last=(value)
-        @@last = value
+      def last reponame
+        @@lasts[reponame]
       end
 
       def start(reponames)
         @@repos = reponames
+        @@lasts = {}
         @@urls = {}
         run!
       end
@@ -100,17 +97,20 @@ class GitLabMockup
     end
 
     post "/api/v3/projects/:project_id/merge_request/:mr_id/comments" do
-      self.class.last = "/mr_comment/#{params[:mr_id]}"
+      reponame = @@repos[params['project_id'].to_i]
+      @@lasts[reponame] = "/mr_comment/#{params[:mr_id]}"
       json author: author , note: request.body.string
     end
 
     post "/api/v3/projects/:project_id/repository/commits/:sha/comments" do
-      self.class.last = "/comment/#{params[:sha]}"
+      reponame = @@repos[params['project_id'].to_i]
+      @@lasts[reponame] = "/comment/#{params[:sha]}"
       json author: author , note: request.body.string
     end
 
     post "/api/v3/projects/:project_id/repository/commits/:sha/status" do
-      self.class.last = "/status/#{params[:sha]}"
+      reponame = @@repos[params['project_id'].to_i]
+      @@lasts[reponame] = "/status/#{params[:sha]}"
       json state: params[:state] , target_url: params[:target_url]
     end
 
