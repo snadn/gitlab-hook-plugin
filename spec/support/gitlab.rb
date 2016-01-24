@@ -46,6 +46,7 @@ class GitLabMockup
 
       def start(reponames)
         @@repos = reponames
+        @@urls = {}
         run!
       end
 
@@ -63,12 +64,13 @@ class GitLabMockup
 
       def project_info(id)
         name = @@repos[id]
+        dirname = @@urls[name] or name
         {
           'id' => id,
           'name' => name,
           'default_branch' => 'master',
-          'http_url_to_repo' => "http://localhost/tmp/#{name}.git",
-          'ssh_url_to_repo' => "localhost:/tmp/#{name}.git",
+          'http_url_to_repo' => "http://localhost/tmp/#{dirname}.git",
+          'ssh_url_to_repo' => "localhost:/tmp/#{dirname}.git",
           'web_url' => "http://localhost/tmp/#{name}"
         }
       end
@@ -88,6 +90,7 @@ class GitLabMockup
 
     get "/api/v3/projects/search/:query" do
       reponame = params['query'].split('-').first[0..-9]
+      @@urls[reponame] = params['query'] unless @@urls.has_key?(reponame)
       project_id = @@repos.rindex(reponame)
       json [ project_info(project_id) ]
     end
