@@ -61,12 +61,14 @@ module GitlabWebHook
       matches_branch?(details, branch, exactly)
     end
 
-    def pre_build_merge?
-      pre_build_merge ? true : false
+    # The parameter is used to signal to pre_build_merge function whether
+    # it runs from webhook or notifier plugins
+    def pre_build_merge?(plugin_instance=nil)
+      pre_build_merge(plugin_instance) ? true : false
     end
 
     def merge_to?(branch)
-      return false unless pre_build_merge? && settings.merged_branch_triggering?
+      return false unless settings.merged_branch_triggering? && pre_build_merge?
       merge_params = pre_build_merge.get_options
       merge_params.merge_target == branch
     end
@@ -98,20 +100,32 @@ module GitlabWebHook
       getProperty(ParametersDefinitionProperty.java_class).getParameterDefinitions()
     end
 
-    def merge_target
-      return nil unless pre_build_merge?
+    # This method is only used on gitlab-notifier context, but as it calls
+    # pre_build_merge, we use the same prototype
+    def merge_target(plugin_instance=nil)
+      return nil unless pre_build_merge?(plugin_instance)
       pre_build_merge.get_options.merge_target
     end
 
+    # This method is only called on gitlab-notifier context
     def local_clone
-      local = matching_scms.any? and matching_scms.first.extensions.get RelativeTargetDirectory.java_class
+      local = scms.first.extensions.get RelativeTargetDirectory.java_class
       return local.relative_target_dir if local
     end
 
     private
 
-    def pre_build_merge
-      @pre_build_merge ||= matching_scms.any? and matching_scms.first.extensions.get PreBuildMerge.java_class
+    # When it is called during project matching, previous call to matches_uri
+    # did populate matching_scms variable, but when it is called on the
+    # notifier plugin only basic initialization is done.
+    # This means that, in multiple-scms context the selected SCM could be
+    # a wrong one, and gitlab-notifier should be used with care.
+    def pre_build_merge(plugin_instance=nil)
+      @pre_build_merge ||= if plugin_instance.nil?
+        matching_scms.any? and matching_scms.first.extensions.get PreBuildMerge.java_class
+      else
+        scms.first.extensions.get PreBuildMerge.java_class
+      end
     end
 
     def matches_repo_uri?(details_uri)

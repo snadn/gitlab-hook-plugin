@@ -21,7 +21,7 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
     client.name = repo_namespace(build)
     return unless descriptor.commit_status?
     env = build.native.environment listener
-    if project.pre_build_merge?
+    if project.pre_build_merge?(self)
       sha = post_commit build, listener
     else
       sha = env['GIT_COMMIT']
@@ -31,10 +31,11 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
 
   def perform(build, launcher, listener)
     client.name = repo_namespace(build) if client.name.nil?
-    mr_id = client.merge_request(project)
+    merge_target = project.merge_target(self)
+    mr_id = client.merge_id(project, merge_target)
     return if mr_id == -1 && descriptor.mr_status_only?
     env = build.native.environment listener
-    if project.pre_build_merge?
+    if project.pre_build_merge?(self)
       sha = post_commit build, listener
     else
       sha = env['GIT_COMMIT']
