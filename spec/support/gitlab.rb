@@ -3,13 +3,14 @@ require 'sinatra/json'
 
 class GitLabMockup
 
-  def initialize(name)
+  def initialize(repodirs)
+    reponames = repodirs.collect{ |dir| File.basename(dir, '.git').split('-').first[0..-9] }
     # We actully hide whole stderr, not only sinatra, but
     # that's better than keep the noise added by request tracing
     @log, err = IO.pipe
     @server = Thread.fork do
       $stderr.reopen err
-      MyServer.start name
+      MyServer.start reponames
     end
   end
 
@@ -41,8 +42,8 @@ class GitLabMockup
         @@last = value
       end
 
-      def start(name)
-        @@name = name
+      def start(reponames)
+        @@repos = reponames
         run!
       end
 
@@ -52,16 +53,17 @@ class GitLabMockup
 
       def author
         {
-            "id" => 1,
+            "id" => 0,
             "name" => "root",
             "username" => "root"
         }
       end
 
-      def project_info(name)
+      def project_info(id)
+        name = @@repos[id]
         {
-          'id' => 1,
-          'name' => 'testrepo',
+          'id' => id,
+          'name' => name,
           'default_branch' => 'master',
           'http_url_to_repo' => "http://localhost/tmp/#{name}.git",
           'ssh_url_to_repo' => "localhost:/tmp/#{name}.git",
@@ -69,9 +71,9 @@ class GitLabMockup
         }
       end
 
-      def mr_response
+      def mr_response(id)
         {
-          'id' => 1, 'iid' => 1,
+          'id' => id, 'iid' => id,
           'target_branch' => 'master',
           'source_branch' => 'feature/branch'
         }
@@ -79,15 +81,17 @@ class GitLabMockup
     end
 
     get "/api/v3/projects/:project_id" do
-      json project_info(@@name)
+      json project_info(params['project_id'].to_i)
     end
 
     get "/api/v3/projects/search/:query" do
-      json [ project_info(params['query']) ]
+      reponame = params['query'].split('-').first[0..-9]
+      project_id = @@repos.rindex(reponame)
+      json [ project_info(project_id) ]
     end
 
     get "/api/v3/projects/:project_id/merge_requests" do
-      json [ mr_response ]
+      json [ mr_response(params['project_id']) ]
     end
 
     post "/api/v3/projects/:project_id/merge_request/:mr_id/comments" do

@@ -11,6 +11,7 @@ feature 'GitLab WebHook' do
   testrepodir = Dir.mktmpdir [ 'testrepo' , '.git' ]
   tagsrepodir = Dir.mktmpdir [ 'tagsrepo' , '.git' ]
   xtrarepodir = Dir.mktmpdir [ 'xtrarepo' , '.git' ]
+  repodirs = [ testrepodir , tagsrepodir , xtrarepodir ]
 
   before(:all) do
     FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), testrepodir
@@ -25,7 +26,7 @@ feature 'GitLab WebHook' do
       outfd.write File.read('work/jobs/subdirjob/config.xml.erb') % { xtrarepodir: xtrarepodir }
     end
     @server = Jenkins::Server.new
-    @gitlab = GitLabMockup.new Pathname.new(testrepodir).basename('.git').to_s
+    @gitlab = GitLabMockup.new repodirs
   end
 
   after(:all) do
@@ -153,7 +154,7 @@ feature 'GitLab WebHook' do
       expect(page).to have_xpath("//a[@href='/job/testrepo-mr-feature_branch/1/']")
       wait_idle
       expect(@server.result('testrepo-mr-feature_branch', 1)).to eq 'SUCCESS'
-      expect(@gitlab.last).to eq '/mr_comment/1'
+      expect(@gitlab.last).to eq '/mr_comment/0'
     end
 
     scenario 'Remove project once merged' do
@@ -180,7 +181,7 @@ feature 'GitLab WebHook' do
       expect(page).to have_xpath("//a[@href='/job/testrepo-mr-feature_branch/1/']")
       wait_idle
       expect(@server.result('testrepo-mr-feature_branch', 1)).to eq 'SUCCESS'
-      expect(@gitlab.last).to eq '/mr_comment/1'
+      expect(@gitlab.last).to eq '/mr_comment/0'
     end
 
     scenario 'Remove project once merged' do
