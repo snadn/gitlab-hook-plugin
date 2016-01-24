@@ -25,7 +25,7 @@ feature 'GitLab WebHook' do
     FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), multiscmdir
     FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), altrepodir
     File.open('work/jobs/multiscm/config.xml', 'w') do |outfd|
-      outfd.write File.read('work/jobs/multiscm/config.xml.erb') % { multiscmdir1: multiscmdir , multiscmdir2: altrepodir }
+      outfd.write File.read('work/jobs/multiscm/config.xml.erb') % { multiscmdir1: altrepodir , multiscmdir2: multiscmdir }
     end
     FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), xtrarepodir
     File.open('work/jobs/subdirjob/config.xml', 'w') do |outfd|
