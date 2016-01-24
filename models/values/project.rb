@@ -37,7 +37,7 @@ module GitlabWebHook
     alias_method :to_s, :fullName
 
     attr_reader :jenkins_project, :scms, :logger
-    attr_reader :matching_scms
+    attr_reader :matching_scms, :matched_scm, :matched_branch
 
     def initialize(jenkins_project, logger = Java.java.util.logging.Logger.getLogger(Project.class.name))
       raise ArgumentError.new("jenkins project is required") unless jenkins_project
@@ -154,10 +154,9 @@ module GitlabWebHook
       refspec = details.full_branch_reference
       branch = details.branch unless branch
       matched_refspecs = []
-      matched_branch = nil
 
-      matched_scm = matching_scms.find do |scm|
-        matched_branch = scm.branches.find do |scm_branch|
+      @matched_scm = matching_scms.find do |scm|
+        @matched_branch = scm.branches.find do |scm_branch|
           scm.repositories.find do |repo|
             # When BranchSpec seems to be a 'refs' style, we use the reference supplied by
             # gitlab, which is the reference on its local repository. In any other case, we
@@ -181,13 +180,13 @@ module GitlabWebHook
       if !matched_branch && parametrized?
         branch_param = get_branch_name_parameter
         if branch_param && branch_param.name.downcase == 'tagname'
-          matched_branch = branch_param if details.tagname
+          @matched_branch = branch_param if details.tagname
         elsif matched_refspecs.any?
-          matched_branch = branch_param unless details.tagname
+          @matched_branch = branch_param unless details.tagname
         end
       end
 
-      matched_scm = matching_scms.find { |scm| scm.buildChooser.java_kind_of?(InverseBuildChooser) } unless matched_scm
+      @matched_scm = matching_scms.find { |scm| scm.buildChooser.java_kind_of?(InverseBuildChooser) } unless matched_scm
       build_chooser = matched_scm.buildChooser if matched_scm
       build_chooser && build_chooser.java_kind_of?(InverseBuildChooser) ? matched_branch.nil? : !matched_branch.nil?
     end
