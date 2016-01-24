@@ -21,13 +21,15 @@ class GitLabMockup
   def kill
     @server.kill
     @server.join
+    $stderr.puts "END MOCKUP"
+    dump @log, ' ## '
   end
 
   def dump(instream, prefix='', outstream=$stdout)
     begin
       line = instream.readline
       outstream.puts "#{prefix}#{line}"
-    end until instream.eof?
+    end until line.start_with?("END MOCKUP")
   end
 
   class MyServer < Sinatra::Base
