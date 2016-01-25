@@ -113,6 +113,10 @@ module GitlabWebHook
       return local.relative_target_dir if local
     end
 
+    def multiscm?
+      @multiscm == true
+    end
+
     private
 
     # When it is called during project matching, previous call to matches_uri
@@ -211,6 +215,7 @@ module GitlabWebHook
         if scm.java_kind_of?(GitSCM)
           @scms << scm
         elsif MultipleScmsPluginAvailable && scm.java_kind_of?(MultiSCM)
+          @multiscm = true
           @scms.concat(scm.getConfiguredSCMs().select { |scm| scm.java_kind_of?(GitSCM) })
         end
       end

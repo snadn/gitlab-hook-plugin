@@ -19,13 +19,15 @@ module GitlabWebHook
     def initialize(get_jenkins_projects = GetJenkinsProjects.new, build_scm = BuildScm.new)
       @get_jenkins_projects = get_jenkins_projects
       @build_scm = build_scm
+      @logger = Java.java.util.logging.Logger.getLogger(self.class.name)
     end
 
     def with(details)
       return if details.branch.empty?
       copy_from = get_project_to_copy_from(details)
       new_project_name = get_new_project_name(copy_from, details)
-      new_project_scm = @build_scm.with(copy_from.scm, details)
+      @logger.warning( "Multiple-SCMs project #{copy_from} incompletelly copied onto #{new_project_name}" ) if copy_from.multiscm?
+      new_project_scm = @build_scm.with(copy_from.matched_scm, details)
       branch_project = nil
 
       Security.impersonate(ACL::SYSTEM) do
@@ -42,9 +44,10 @@ module GitlabWebHook
     def from_template(template, details)
       return if details.branch.empty?
       copy_from = get_template_project(template)
+      raise ConfigurationException.new("Templates with multiples-scms plugin not supported") if copy_from.multiscm?
       new_project_name = details.repository_name
       raise ConfigurationException.new("project #{new_project_name} already created from #{template}") unless @get_jenkins_projects.named(new_project_name).empty?
-      modified_scm = @build_scm.with(copy_from.scm, details, true)
+      modified_scm = @build_scm.with(copy_from.jenkins_project.scm, details, true)
       branch_project = nil
 
       Security.impersonate(ACL::SYSTEM) do
@@ -60,7 +63,8 @@ module GitlabWebHook
     def for_merge(details)
       get_candidate_projects(details).collect do |copy_from|
         new_project_name = "#{copy_from.name}-mr-#{details.safe_branch}"
-        cloned_scm = @build_scm.with(copy_from.scm, details)
+        @logger.warning( "Multiple-SCMs project #{copy_from} incompletelly copied onto #{new_project_name}" ) if copy_from.multiscm?
+        cloned_scm = @build_scm.with(copy_from.matched_scm, details)
         # What about candidates with pre-build merge enabled?
         user_merge_options = UserMergeOptions.new('origin', details.target_branch, 'default')
         cloned_scm.extensions.add PreBuildMerge.new(user_merge_options)
