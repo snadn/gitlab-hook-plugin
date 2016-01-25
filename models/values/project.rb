@@ -114,12 +114,6 @@ module GitlabWebHook
       @pre_build_merge ||= scm.extensions.get PreBuildMerge.java_class
     end
 
-    def matches_repo_uri?(details_uri)
-      scm.repositories.find do |repo|
-        repo.getURIs().find { |project_repo_uri| details_uri.matches?(project_repo_uri) }
-      end
-    end
-
     def matching_scms?(details_uri)
       matching_scms(details_uri).any?
     end
