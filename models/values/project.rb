@@ -54,7 +54,7 @@ module GitlabWebHook
     def matches?(details, branch = false, exactly = false)
       return false unless buildable?
       return false unless matches_uri?(details.repository_uri)
-      if merge_to?( branch || details.branch )
+      if settings.merged_branch_triggering? && merge_to?( branch || details.branch )
         logger.info("project #{self} merge target matches #{branch || details.branch}")
         return true
       end
@@ -66,7 +66,7 @@ module GitlabWebHook
     end
 
     def merge_to?(branch)
-      return false unless pre_build_merge? && settings.merged_branch_triggering?
+      return false unless pre_build_merge?
       merge_params = pre_build_merge.get_options
       merge_params.merge_target == branch
     end
