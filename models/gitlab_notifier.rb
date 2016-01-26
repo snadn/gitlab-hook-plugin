@@ -18,9 +18,11 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
   end
 
   def prebuild(build, listener)
-    client.name = repo_namespace(build, listener)
-    return unless descriptor.commit_status?
     env = build.native.environment listener
+    @project = GitlabWebHook::Project.new build.native.project
+    project.running_scm env
+    client.name = repo_namespace(build, env )
+    return unless descriptor.commit_status?
     if project.pre_build_merge?
       sha = post_commit build, listener
     else
@@ -30,7 +32,6 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
   end
 
   def perform(build, launcher, listener)
-    client.name = repo_namespace(build, listener) if client.name.nil?
     mr_id = client.merge_request(project)
     return if mr_id == -1 && descriptor.mr_status_only?
     env = build.native.environment listener
@@ -142,12 +143,8 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
     @client = Gitlab::Client.new @descriptor
   end
 
-  def repo_namespace(build, listener)
-    @project = GitlabWebHook::Project.new build.native.project
-    project.running_scm build.native.environment(listener)
-    repo_url = project.matched_scm.repositories.first.getURIs.first
-    repo_path = repo_url.path.split '/'
-    repo_path[-2..-1].join '/'
+  def repo_namespace(build, env)
+    env['GIT_URL'].split('/')[-2..-1].join('/')
   end
 
 end
