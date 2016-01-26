@@ -91,7 +91,7 @@ class GitLabMockup
     end
 
     post "/api/v3/projects/:project_id/merge_request/:mr_id/comments" do
-      self.class.last = "/mr_comment/#{params[:mr_id]}"
+      self.class.last = "/mr_comment/#{params[:mr_id]} - #{params[:note]}"
       json author: author , note: request.body.string
     end
 

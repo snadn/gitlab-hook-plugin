@@ -153,7 +153,7 @@ feature 'GitLab WebHook' do
       expect(page).to have_xpath("//a[@href='/job/testrepo-mr-feature_branch/1/']")
       wait_idle
       expect(@server.result('testrepo-mr-feature_branch', 1)).to eq 'SUCCESS'
-      expect(@gitlab.last).to eq '/mr_comment/1'
+      expect(@gitlab.last).to eq '/mr_comment/1 - [Jenkins CI result SUCCESS](http://localhost:8080/job/testrepo-mr-feature_branch/1/)'
     end
 
     scenario 'Remove project once merged' do
@@ -180,7 +180,7 @@ feature 'GitLab WebHook' do
       expect(page).to have_xpath("//a[@href='/job/testrepo-mr-feature_branch/1/']")
       wait_idle
       expect(@server.result('testrepo-mr-feature_branch', 1)).to eq 'SUCCESS'
-      expect(@gitlab.last).to eq '/mr_comment/1'
+      expect(@gitlab.last).to eq '/mr_comment/1 - [Jenkins CI result SUCCESS](http://localhost:8080/job/testrepo-mr-feature_branch/1/)'
     end
 
     scenario 'Builds a push to merged branch (master)' do
@@ -190,7 +190,7 @@ feature 'GitLab WebHook' do
       expect(page).to have_xpath("//a[@href='/job/testrepo-mr-feature_branch/2/']")
       wait_idle
       expect(@server.result('testrepo-mr-feature_branch', 2)).to eq 'SUCCESS'
-      expect(@gitlab.last).to eq '/mr_comment/1'
+      expect(@gitlab.last).to eq '/mr_comment/1 - [Jenkins CI result SUCCESS](http://localhost:8080/job/testrepo-mr-feature_branch/2/)'
     end
 
     scenario 'Remove project once merged' do
