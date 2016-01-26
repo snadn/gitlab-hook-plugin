@@ -183,6 +183,16 @@ feature 'GitLab WebHook' do
       expect(@gitlab.last).to eq '/mr_comment/1'
     end
 
+    scenario 'Builds a push to merged branch (master)' do
+      File.write("#{testrepodir}/refs/heads/master", '6957dc21ae95f0c70931517841a9eb461f94548c')
+      incoming_payload 'master_push', 'testrepo', testrepodir
+      wait_for '/job/testrepo-mr-feature_branch', "//a[@href='/job/testrepo-mr-feature_branch/2/']"
+      expect(page).to have_xpath("//a[@href='/job/testrepo-mr-feature_branch/2/']")
+      wait_idle
+      expect(@server.result('testrepo-mr-feature_branch', 2)).to eq 'SUCCESS'
+      expect(@gitlab.last).to eq '/mr_comment/1'
+    end
+
     scenario 'Remove project once merged' do
       incoming_payload 'accept_merge_request', 'testrepo', testrepodir
       visit '/'
