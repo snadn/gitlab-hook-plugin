@@ -104,13 +104,13 @@ class GitLabMockup
 
     post "/api/v3/projects/:project_id/repository/commits/:sha/comments" do
       reponame = @@repos[params['project_id'].to_i]
-      @@lasts[reponame] = "/comment/#{params[:sha]}"
+      @@lasts[reponame] = "/comment/#{params[:sha]} - #{params[:note]}"
       json author: author , note: request.body.string
     end
 
     post "/api/v3/projects/:project_id/repository/commits/:sha/status" do
       reponame = @@repos[params['project_id'].to_i]
-      @@lasts[reponame] = "/status/#{params[:sha]}"
+      @@lasts[reponame] = "/status/#{params[:sha]} - #{params[:state]} - #{params[:target_url]}"
       json state: params[:state] , target_url: params[:target_url]
     end
 

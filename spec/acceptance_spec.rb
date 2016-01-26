@@ -62,7 +62,7 @@ feature 'GitLab WebHook' do
       expect(page).to have_xpath("//a[@href='/job/testrepo/1/']")
       wait_idle
       expect(@server.result('testrepo', 1)).to eq 'SUCCESS'
-      expect(@gitlab.last('testrepo')).to eq '/comment/e3719eaab95642a63e90da0b9b23de0c9d384785'
+      expect(@gitlab.last('testrepo')).to eq '/comment/e3719eaab95642a63e90da0b9b23de0c9d384785 - [Jenkins CI result SUCCESS](http://localhost:8080/job/testrepo/1/)'
     end
 
     scenario 'Does nothing for tags' do
@@ -79,7 +79,7 @@ feature 'GitLab WebHook' do
       expect(page).to have_xpath("//a[@href='/job/testrepo/2/']")
       wait_idle
       expect(@server.result('testrepo', 2)).to eq 'SUCCESS'
-      expect(@gitlab.last('testrepo')).to eq '/comment/6957dc21ae95f0c70931517841a9eb461f94548c'
+      expect(@gitlab.last('testrepo')).to eq '/comment/6957dc21ae95f0c70931517841a9eb461f94548c - [Jenkins CI result SUCCESS](http://localhost:8080/job/testrepo/2/)'
     end
 
   end
@@ -99,7 +99,7 @@ feature 'GitLab WebHook' do
       expect(page).to have_xpath("//a[@href='/job/testrepo_feature_branch/1/']")
       wait_idle
       expect(@server.result('testrepo_feature_branch', 1)).to eq 'SUCCESS'
-      expect(@gitlab.last('testrepo')).to eq '/comment/80a89e1156d5d7e9471c245ccaeafb7bcb49c0a5'
+      expect(@gitlab.last('testrepo')).to eq '/comment/80a89e1156d5d7e9471c245ccaeafb7bcb49c0a5 - [Jenkins CI result SUCCESS](http://localhost:8080/job/testrepo_feature_branch/1/)'
     end
 
     scenario 'Builds a push to feature branch' do
@@ -109,7 +109,7 @@ feature 'GitLab WebHook' do
       expect(page).to have_xpath("//a[@href='/job/testrepo_feature_branch/2/']")
       wait_idle
       expect(@server.result('testrepo_feature_branch', 2)).to eq 'SUCCESS'
-      expect(@gitlab.last('testrepo')).to eq '/comment/ba46b858929aec55a84a9cb044e988d5d347b8de'
+      expect(@gitlab.last('testrepo')).to eq '/comment/ba46b858929aec55a84a9cb044e988d5d347b8de - [Jenkins CI result SUCCESS](http://localhost:8080/job/testrepo_feature_branch/2/)'
     end
 
     scenario 'Branch removal' do
@@ -209,7 +209,7 @@ feature 'GitLab WebHook' do
       expect(page).to have_xpath("//a[@href='/job/testrepo/3/']")
       wait_idle
       expect(@server.result('testrepo', 3)).to eq 'SUCCESS'
-      expect(@gitlab.last('testrepo')).to eq '/status/6957dc21ae95f0c70931517841a9eb461f94548c'
+      expect(@gitlab.last('testrepo')).to eq '/status/6957dc21ae95f0c70931517841a9eb461f94548c - SUCCESS - http://localhost:8080/job/testrepo/3/'
     end
 
     scenario 'Post status to source branch commit' do
@@ -220,7 +220,7 @@ feature 'GitLab WebHook' do
       expect(page).to have_xpath("//a[@href='/job/testrepo-mr-feature_branch/1/']")
       wait_idle
       expect(@server.result('testrepo-mr-feature_branch', 1)).to eq 'SUCCESS'
-      expect(@gitlab.last('testrepo')).to eq '/status/ba46b858929aec55a84a9cb044e988d5d347b8de'
+      expect(@gitlab.last('testrepo')).to eq '/status/ba46b858929aec55a84a9cb044e988d5d347b8de - SUCCESS - http://localhost:8080/job/testrepo-mr-feature_branch/1/'
     end
 
     feature 'when cloning to subdir' do
@@ -231,7 +231,7 @@ feature 'GitLab WebHook' do
         expect(page).to have_xpath("//a[@href='/job/subdirjob/1/']")
         wait_idle
         expect(@server.result('subdirjob', 1)).to eq 'SUCCESS'
-        expect(@gitlab.last('xtrarepo')).to eq '/status/e3719eaab95642a63e90da0b9b23de0c9d384785'
+        expect(@gitlab.last('xtrarepo')).to eq '/status/e3719eaab95642a63e90da0b9b23de0c9d384785 - SUCCESS - http://localhost:8080/job/subdirjob/1/'
       end
 
       scenario 'Post status to source branch commit' do
@@ -244,7 +244,7 @@ feature 'GitLab WebHook' do
         expect(page).to have_xpath("//a[@href='/job/subdirjob-mr-feature_branch/1/']")
         wait_idle
         expect(@server.result('subdirjob-mr-feature_branch', 1)).to eq 'SUCCESS'
-        expect(@gitlab.last('xtrarepo')).to eq '/status/ba46b858929aec55a84a9cb044e988d5d347b8de'
+        expect(@gitlab.last('xtrarepo')).to eq '/status/ba46b858929aec55a84a9cb044e988d5d347b8de - SUCCESS - http://localhost:8080/job/subdirjob-mr-feature_branch/1/'
       end
 
     end
