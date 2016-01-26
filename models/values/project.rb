@@ -2,6 +2,8 @@ require 'forwardable'
 
 require_relative '../exceptions/configuration_exception'
 require_relative '../util/settings'
+require_relative 'repository_uri'
+
 
 include Java
 
@@ -37,14 +39,22 @@ module GitlabWebHook
     alias_method :to_s, :fullName
 
     attr_reader :jenkins_project, :scms, :logger
-    attr_reader :matching_scms, :matched_scm, :matched_branch
+    attr_reader :matching_scms, :matched_scm, :matched_branch, :matched_refspecs
 
     def initialize(jenkins_project, logger = Java.java.util.logging.Logger.getLogger(Project.class.name))
       raise ArgumentError.new("jenkins project is required") unless jenkins_project
       @jenkins_project = jenkins_project
       @logger = logger
       @matching_scms = []
+      @matched_refspecs = []
       setup_scms
+    end
+
+    def running_scm(env)
+      running_uri = RepositoryUri.new(env['GIT_URL'])
+      match_scms(running_uri)
+      branch = env['GIT_BRANCH'].split('/')[1..-1].join('/')
+      match_scm(branch, "refs/heads/#{branch}") # exact or not? Account for the '*' instead of asterisk
     end
 
     def matches_uri?(details_uri)
@@ -61,10 +71,8 @@ module GitlabWebHook
       matches_branch?(details, branch, exactly)
     end
 
-    # The parameter is used to signal to pre_build_merge function whether
-    # it runs from webhook or notifier plugins
-    def pre_build_merge?(plugin_instance=nil)
-      pre_build_merge(plugin_instance) ? true : false
+    def pre_build_merge?
+      pre_build_merge ? true : false
     end
 
     def merge_to?(branch)
@@ -100,16 +108,13 @@ module GitlabWebHook
       getProperty(ParametersDefinitionProperty.java_class).getParameterDefinitions()
     end
 
-    # This method is only used on gitlab-notifier context, but as it calls
-    # pre_build_merge, we use the same prototype
-    def merge_target(plugin_instance=nil)
-      return nil unless pre_build_merge?(plugin_instance)
+    def merge_target
+      return nil unless pre_build_merge?
       pre_build_merge.get_options.merge_target
     end
 
-    # This method is only called on gitlab-notifier context
     def local_clone
-      local = scms.first.extensions.get RelativeTargetDirectory.java_class
+      local = matching_scms.first.extensions.get RelativeTargetDirectory.java_class
       return local.relative_target_dir if local
     end
 
@@ -119,17 +124,11 @@ module GitlabWebHook
 
     private
 
-    # When it is called during project matching, previous call to matches_uri
-    # did populate matching_scms variable, but when it is called on the
-    # notifier plugin only basic initialization is done.
-    # This means that, in multiple-scms context the selected SCM could be
-    # a wrong one, and gitlab-notifier should be used with care.
-    def pre_build_merge(plugin_instance=nil)
-      @pre_build_merge ||= if plugin_instance.nil?
-        matching_scms.any? and matching_scms.first.extensions.get PreBuildMerge.java_class
-      else
-        scms.first.extensions.get PreBuildMerge.java_class
-      end
+    # Although matching_scms is populated in webhook and notifier contexts, the
+    # simple selection of the SCM (first from matching list), might cause bad
+    # notification behaviour in some strange corner cases
+    def pre_build_merge
+      @pre_build_merge ||= matching_scms.first.extensions.get PreBuildMerge.java_class
     end
 
     def matches_repo_uri?(details_uri)
@@ -168,11 +167,7 @@ module GitlabWebHook
     # the configured refspec and the supplied string, except for the removal of the first
     # path portion when refspec has no slash.
     #
-    def matches_branch?(details, branch = false, exactly = false)
-      refspec = details.full_branch_reference
-      branch = details.branch unless branch
-      matched_refspecs = []
-
+    def match_scm(branch, refspec, exactly = false)
       @matched_scm = matching_scms.find do |scm|
         @matched_branch = scm.branches.find do |scm_branch|
           scm.repositories.find do |repo|
@@ -194,6 +189,13 @@ module GitlabWebHook
           end
         end
       end
+    end
+
+    def matches_branch?(details, branch = false, exactly = false)
+      refspec = details.full_branch_reference
+      branch = details.branch unless branch
+
+      match_scm(branch, refspec, exactly)
 
       if !matched_branch && parametrized?
         branch_param = get_branch_name_parameter
