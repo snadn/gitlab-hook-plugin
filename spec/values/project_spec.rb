@@ -5,7 +5,7 @@ module GitlabWebHook
     include_context 'settings'
 
     let(:scm) { double(GitSCM) }
-    let(:jenkins_project) { double(AbstractProject, fullName: 'diaspora') }
+    let(:jenkins_project) { double(AbstractProject, scm: scm, fullName: 'diaspora') }
     let(:logger) { double }
     let(:subject) { Project.new(jenkins_project, logger) }
 
@@ -19,10 +19,9 @@ module GitlabWebHook
       before(:each) do
         expect(scm).to receive(:java_kind_of?).with(GitSCM) { true }
         expect(scm).not_to receive(:java_kind_of?)
-        allow(jenkins_project).to receive(:scm) { scm }
       end
 
-      [:scm, :schedulePolling, :scheduleBuild2, :fullName, :isParameterized, :isBuildable, :getQuietPeriod, :getProperty, :delete, :description].each do |message|
+      [:schedulePolling, :scheduleBuild2, :fullName, :isParameterized, :isBuildable, :getQuietPeriod, :getProperty, :delete, :description].each do |message|
         it "delegates #{message}" do
           expect(jenkins_project).to receive(message)
           subject.send(message)
@@ -48,7 +47,6 @@ module GitlabWebHook
       before(:each) do
         expect(scm).to receive(:java_kind_of?).with(GitSCM) { true }
         expect(scm).not_to receive(:java_kind_of?).with(MultiSCM)
-        allow(jenkins_project).to receive(:scm) { scm }
 
         allow(subject).to receive(:buildable?) { true }
         allow(subject).to receive(:parametrized?) { false }
@@ -220,8 +218,6 @@ module GitlabWebHook
         allow(scm).to receive(:getConfiguredSCMs) { [regular_git_scm, not_git_scm, inverse_git_scm] }
         allow(scm).to receive(:extensions) { double('ExtensionsList', get: nil) }
 
-        allow(jenkins_project).to receive(:scm) { scm }
-
         allow(subject).to receive(:buildable?) { true }
         allow(subject).to receive(:parametrized?) { false }
 
@@ -274,7 +270,6 @@ module GitlabWebHook
 
       before (:each) do
         allow(scm).to receive(:branches) { [branch] }
-        allow(jenkins_project).to receive(:scm) { scm }
         allow(subject).to receive(:buildable?) { true }
         allow(subject).to receive(:parametrized?) { false }
         expect(subject.matches_uri?(details.repository_uri)).to be(true)
@@ -323,7 +318,6 @@ module GitlabWebHook
 
       before (:each) do
         allow(scm).to receive(:branches) { [branch] }
-        allow(jenkins_project).to receive(:scm) { scm }
         allow(subject).to receive(:buildable?) { true }
         allow(subject).to receive(:parametrized?) { false }
         expect(subject.matches_uri?(details.repository_uri)).to be(true)
@@ -383,7 +377,6 @@ module GitlabWebHook
       let(:details) { double(RequestDetails, repository_uri: details_uri, full_branch_reference: 'refs/tags/v1.0.0', branch: 'tags/v1.0.0', tagname: 'v1.0.0') }
 
       before (:each) do
-        allow(jenkins_project).to receive(:scm) { scm }
         expect(scm).to receive(:java_kind_of?).with(GitSCM) { true }
         expect(scm).not_to receive(:java_kind_of?).with(MultiSCM)
 
@@ -430,7 +423,6 @@ module GitlabWebHook
       before(:each) do
         expect(scm).to receive(:java_kind_of?).with(GitSCM) { true }
         expect(scm).not_to receive(:java_kind_of?).with(MultiSCM)
-        allow(jenkins_project).to receive(:scm) { scm }
       end
 
       context 'method pre_build_merge? returns' do

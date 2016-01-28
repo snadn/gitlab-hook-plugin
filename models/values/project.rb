@@ -31,7 +31,7 @@ module GitlabWebHook
     include Settings
     extend Forwardable
 
-    def_delegators :@jenkins_project, :scm, :schedulePolling, :scheduleBuild2, :fullName, :isParameterized, :isBuildable, :getQuietPeriod, :getProperty, :delete, :description
+    def_delegators :@jenkins_project, :schedulePolling, :scheduleBuild2, :fullName, :isParameterized, :isBuildable, :getQuietPeriod, :getProperty, :delete, :description
 
     alias_method :parametrized?, :isParameterized
     alias_method :buildable?, :isBuildable
@@ -132,7 +132,7 @@ module GitlabWebHook
     end
 
     def matches_repo_uri?(details_uri)
-      scm.repositories.find do |repo|
+      jenkins_project.scm.repositories.find do |repo|
         repo.getURIs().find { |project_repo_uri| details_uri.matches?(project_repo_uri) }
       end
     end
@@ -213,12 +213,12 @@ module GitlabWebHook
 
     def setup_scms
       @scms = []
-      if scm
-        if scm.java_kind_of?(GitSCM)
-          @scms << scm
-        elsif MultipleScmsPluginAvailable && scm.java_kind_of?(MultiSCM)
+      if jenkins_project.scm
+        if jenkins_project.scm.java_kind_of?(GitSCM)
+          @scms << jenkins_project.scm
+        elsif MultipleScmsPluginAvailable && jenkins_project.scm.java_kind_of?(MultiSCM)
           @multiscm = true
-          @scms.concat(scm.getConfiguredSCMs().select { |scm| scm.java_kind_of?(GitSCM) })
+          @scms.concat(jenkins_project.scm.getConfiguredSCMs().select { |scm| scm.java_kind_of?(GitSCM) })
         end
       end
     end
