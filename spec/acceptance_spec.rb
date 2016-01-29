@@ -11,6 +11,7 @@ feature 'GitLab WebHook' do
   testrepodir = Dir.mktmpdir [ 'testrepo' , '.git' ]
   tagsrepodir = Dir.mktmpdir [ 'tagsrepo' , '.git' ]
   xtrarepodir = Dir.mktmpdir [ 'xtrarepo' , '.git' ]
+  repodirs = [ testrepodir , tagsrepodir , xtrarepodir ]
 
   before(:all) do
     FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), testrepodir
@@ -25,7 +26,7 @@ feature 'GitLab WebHook' do
       outfd.write File.read('work/jobs/subdirjob/config.xml.erb') % { xtrarepodir: xtrarepodir }
     end
     @server = Jenkins::Server.new
-    @gitlab = GitLabMockup.new Pathname.new(testrepodir).basename('.git').to_s
+    @gitlab = GitLabMockup.new repodirs
   end
 
   after(:all) do
@@ -46,7 +47,7 @@ feature 'GitLab WebHook' do
     end
 
     scenario 'Does not create project for tag' do
-      incoming_payload 'tag', 'testrepo', testrepodir
+      incoming_payload 'tag', testrepodir
       visit '/'
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_tag1']")
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_']")
@@ -54,18 +55,18 @@ feature 'GitLab WebHook' do
     end
 
     scenario 'Creates project from template' do
-      incoming_payload 'first_push', 'testrepo', testrepodir
+      incoming_payload 'first_push', testrepodir
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo']")
       wait_for '/job/testrepo', "//a[@href='/job/testrepo/1/']"
       expect(page).to have_xpath("//a[@href='/job/testrepo/1/']")
       wait_idle
       expect(@server.result('testrepo', 1)).to eq 'SUCCESS'
-      expect(@gitlab.last).to eq '/comment/e3719eaab95642a63e90da0b9b23de0c9d384785'
+      expect(@gitlab.last('testrepo')).to eq '/comment/e3719eaab95642a63e90da0b9b23de0c9d384785 - [Jenkins CI result SUCCESS](http://localhost:8080/job/testrepo/1/)'
     end
 
     scenario 'Does nothing for tags' do
-      incoming_payload 'tag', 'testrepo', testrepodir
+      incoming_payload 'tag', testrepodir
       visit '/'
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_tag1']")
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_']")
@@ -73,12 +74,12 @@ feature 'GitLab WebHook' do
 
     scenario 'Builds a push to master branch' do
       File.write("#{testrepodir}/refs/heads/master", '6957dc21ae95f0c70931517841a9eb461f94548c')
-      incoming_payload 'master_push', 'testrepo', testrepodir
+      incoming_payload 'master_push', testrepodir
       wait_for '/job/testrepo', "//a[@href='/job/testrepo/2/']"
       expect(page).to have_xpath("//a[@href='/job/testrepo/2/']")
       wait_idle
       expect(@server.result('testrepo', 2)).to eq 'SUCCESS'
-      expect(@gitlab.last).to eq '/comment/6957dc21ae95f0c70931517841a9eb461f94548c'
+      expect(@gitlab.last('testrepo')).to eq '/comment/6957dc21ae95f0c70931517841a9eb461f94548c - [Jenkins CI result SUCCESS](http://localhost:8080/job/testrepo/2/)'
     end
 
   end
@@ -91,28 +92,28 @@ feature 'GitLab WebHook' do
     end
 
     scenario 'Creates project for new branch' do
-      incoming_payload 'branch_creation', 'testrepo', testrepodir
+      incoming_payload 'branch_creation', testrepodir
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_feature_branch']")
       wait_for '/job/testrepo_feature_branch', "//a[@href='/job/testrepo_feature_branch/1/']"
       expect(page).to have_xpath("//a[@href='/job/testrepo_feature_branch/1/']")
       wait_idle
       expect(@server.result('testrepo_feature_branch', 1)).to eq 'SUCCESS'
-      expect(@gitlab.last).to eq '/comment/80a89e1156d5d7e9471c245ccaeafb7bcb49c0a5'
+      expect(@gitlab.last('testrepo')).to eq '/comment/80a89e1156d5d7e9471c245ccaeafb7bcb49c0a5 - [Jenkins CI result SUCCESS](http://localhost:8080/job/testrepo_feature_branch/1/)'
     end
 
     scenario 'Builds a push to feature branch' do
       File.write("#{testrepodir}/refs/heads/feature/branch", 'ba46b858929aec55a84a9cb044e988d5d347b8de')
-      incoming_payload 'branch_push', 'testrepo', testrepodir
+      incoming_payload 'branch_push', testrepodir
       wait_for '/job/testrepo_feature_branch', "//a[@href='/job/testrepo_feature_branch/2/']"
       expect(page).to have_xpath("//a[@href='/job/testrepo_feature_branch/2/']")
       wait_idle
       expect(@server.result('testrepo_feature_branch', 2)).to eq 'SUCCESS'
-      expect(@gitlab.last).to eq '/comment/ba46b858929aec55a84a9cb044e988d5d347b8de'
+      expect(@gitlab.last('testrepo')).to eq '/comment/ba46b858929aec55a84a9cb044e988d5d347b8de - [Jenkins CI result SUCCESS](http://localhost:8080/job/testrepo_feature_branch/2/)'
     end
 
     scenario 'Branch removal' do
-      incoming_payload 'branch_deletion', 'testrepo', testrepodir
+      incoming_payload 'branch_deletion', testrepodir
       visit '/'
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_feature_branch']")
     end
@@ -122,7 +123,7 @@ feature 'GitLab WebHook' do
   feature 'Tag building' do
 
     scenario 'Trigger build for tags' do
-      incoming_payload 'tag', 'tagsrepo', tagsrepodir
+      incoming_payload 'tag', tagsrepodir
       wait_for '/job/tagbuilder', "//a[@href='/job/tagbuilder/1/']"
       expect(page).to have_xpath("//a[@href='/job/tagbuilder/1/']")
       wait_idle
@@ -130,7 +131,7 @@ feature 'GitLab WebHook' do
     end
 
     scenario 'Does not process templates when a tag project exists' do
-      incoming_payload 'first_push', 'tagsrepo', tagsrepodir
+      incoming_payload 'first_push', tagsrepodir
       visit '/'
       pending 'unimplemented fix'
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_tagsrepo_master']")
@@ -146,18 +147,18 @@ feature 'GitLab WebHook' do
     end
 
     scenario 'Create project with merge request' do
-      incoming_payload 'legacy/merge_request', 'testrepo', testrepodir
+      incoming_payload 'legacy/merge_request', testrepodir
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo-mr-feature_branch']")
       wait_for '/job/testrepo-mr-feature_branch', "//a[@href='/job/testrepo-mr-feature_branch/1/']"
       expect(page).to have_xpath("//a[@href='/job/testrepo-mr-feature_branch/1/']")
       wait_idle
       expect(@server.result('testrepo-mr-feature_branch', 1)).to eq 'SUCCESS'
-      expect(@gitlab.last).to eq '/mr_comment/1 - [Jenkins CI result SUCCESS](http://localhost:8080/job/testrepo-mr-feature_branch/1/)'
+      expect(@gitlab.last('testrepo')).to eq '/mr_comment/0 - [Jenkins CI result SUCCESS](http://localhost:8080/job/testrepo-mr-feature_branch/1/)'
     end
 
     scenario 'Remove project once merged' do
-      incoming_payload 'legacy/accept_merge_request', 'testrepo', testrepodir
+      incoming_payload 'legacy/accept_merge_request', testrepodir
       visit '/'
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo-mr-feature_branch']")
       wait_idle
@@ -173,28 +174,28 @@ feature 'GitLab WebHook' do
     end
 
     scenario 'Create project with merge request' do
-      incoming_payload 'merge_request', 'testrepo', testrepodir
+      incoming_payload 'merge_request', testrepodir
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo-mr-feature_branch']")
       wait_for '/job/testrepo-mr-feature_branch', "//a[@href='/job/testrepo-mr-feature_branch/1/']"
       expect(page).to have_xpath("//a[@href='/job/testrepo-mr-feature_branch/1/']")
       wait_idle
       expect(@server.result('testrepo-mr-feature_branch', 1)).to eq 'SUCCESS'
-      expect(@gitlab.last).to eq '/mr_comment/1 - [Jenkins CI result SUCCESS](http://localhost:8080/job/testrepo-mr-feature_branch/1/)'
+      expect(@gitlab.last('testrepo')).to eq '/mr_comment/0 - [Jenkins CI result SUCCESS](http://localhost:8080/job/testrepo-mr-feature_branch/1/)'
     end
 
     scenario 'Builds a push to merged branch (master)' do
       File.write("#{testrepodir}/refs/heads/master", '6957dc21ae95f0c70931517841a9eb461f94548c')
-      incoming_payload 'master_push', 'testrepo', testrepodir
+      incoming_payload 'master_push', testrepodir
       wait_for '/job/testrepo-mr-feature_branch', "//a[@href='/job/testrepo-mr-feature_branch/2/']"
       expect(page).to have_xpath("//a[@href='/job/testrepo-mr-feature_branch/2/']")
       wait_idle
       expect(@server.result('testrepo-mr-feature_branch', 2)).to eq 'SUCCESS'
-      expect(@gitlab.last).to eq '/mr_comment/1 - [Jenkins CI result SUCCESS](http://localhost:8080/job/testrepo-mr-feature_branch/2/)'
+      expect(@gitlab.last('testrepo')).to eq '/mr_comment/0 - [Jenkins CI result SUCCESS](http://localhost:8080/job/testrepo-mr-feature_branch/2/)'
     end
 
     scenario 'Remove project once merged' do
-      incoming_payload 'accept_merge_request', 'testrepo', testrepodir
+      incoming_payload 'accept_merge_request', testrepodir
       visit '/'
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo-mr-feature_branch']")
       wait_idle
@@ -213,35 +214,35 @@ feature 'GitLab WebHook' do
     end
 
     scenario 'Post status for push' do
-      incoming_payload 'master_push', 'testrepo', testrepodir
-      wait_for '/job/testrepo', "//a[@href='/job/testrepo/3/']"
-      expect(page).to have_xpath("//a[@href='/job/testrepo/3/']")
+      incoming_payload 'master_push', testrepodir
+      wait_for '/job/testrepo', "//a[@href='/job/testrepo/4/']"
+      expect(page).to have_xpath("//a[@href='/job/testrepo/4/']")
       wait_idle
       expect(@server.result('testrepo', 3)).to eq 'SUCCESS'
-      expect(@gitlab.last).to eq '/status/6957dc21ae95f0c70931517841a9eb461f94548c'
+      expect(@gitlab.last('testrepo')).to eq '/status/6957dc21ae95f0c70931517841a9eb461f94548c - SUCCESS - http://localhost:8080/job/testrepo/4/'
     end
 
     feature 'Post status to commit on merged branch' do
 
       scenario 'when push is done on merged branch' do
-        incoming_payload 'merge_request', 'testrepo', testrepodir
+        incoming_payload 'merge_request', testrepodir
         visit '/'
         expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo-mr-feature_branch']")
         wait_for '/job/testrepo-mr-feature_branch', "//a[@href='/job/testrepo-mr-feature_branch/1/']"
         expect(page).to have_xpath("//a[@href='/job/testrepo-mr-feature_branch/1/']")
         wait_idle
         expect(@server.result('testrepo-mr-feature_branch', 1)).to eq 'SUCCESS'
-        expect(@gitlab.last).to eq '/status/ba46b858929aec55a84a9cb044e988d5d347b8de'
+        expect(@gitlab.last('testrepo')).to eq '/status/ba46b858929aec55a84a9cb044e988d5d347b8de - SUCCESS - http://localhost:8080/job/testrepo-mr-feature_branch/1/'
       end
 
       scenario 'when push is done on merge destination branch' do
         File.write("#{testrepodir}/refs/heads/master", '6957dc21ae95f0c70931517841a9eb461f94548c')
-        incoming_payload 'master_push', 'testrepo', testrepodir
+        incoming_payload 'master_push', testrepodir
         wait_for '/job/testrepo-mr-feature_branch', "//a[@href='/job/testrepo-mr-feature_branch/2/']"
         expect(page).to have_xpath("//a[@href='/job/testrepo-mr-feature_branch/2/']")
         wait_idle
         expect(@server.result('testrepo-mr-feature_branch', 2)).to eq 'SUCCESS'
-        expect(@gitlab.last).to eq '/status/ba46b858929aec55a84a9cb044e988d5d347b8de'
+        expect(@gitlab.last('testrepo')).to eq '/status/ba46b858929aec55a84a9cb044e988d5d347b8de - SUCCESS - http://localhost:8080/job/testrepo-mr-feature_branch/2/'
       end
 
     end
@@ -249,25 +250,25 @@ feature 'GitLab WebHook' do
     feature 'when cloning to subdir' do
 
       scenario 'Post status for push' do
-        incoming_payload 'master_push', 'subdirjob', xtrarepodir
+        incoming_payload 'master_push', xtrarepodir
         wait_for '/job/subdirjob', "//a[@href='/job/subdirjob/1/']"
         expect(page).to have_xpath("//a[@href='/job/subdirjob/1/']")
         wait_idle
         expect(@server.result('subdirjob', 1)).to eq 'SUCCESS'
-        expect(@gitlab.last).to eq '/status/e3719eaab95642a63e90da0b9b23de0c9d384785'
+        expect(@gitlab.last('xtrarepo')).to eq '/status/e3719eaab95642a63e90da0b9b23de0c9d384785 - SUCCESS - http://localhost:8080/job/subdirjob/1/'
       end
 
       scenario 'Post status to source branch commit' do
         File.write("#{xtrarepodir}/refs/heads/master", '6957dc21ae95f0c70931517841a9eb461f94548c')
         File.write("#{xtrarepodir}/refs/heads/feature/branch", 'ba46b858929aec55a84a9cb044e988d5d347b8de')
-        incoming_payload 'merge_request', 'subdirjob', xtrarepodir
+        incoming_payload 'merge_request', xtrarepodir
         visit '/'
         expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_subdirjob-mr-feature_branch']")
         wait_for '/job/subdirjob-mr-feature_branch', "//a[@href='/job/subdirjob-mr-feature_branch/1/']"
         expect(page).to have_xpath("//a[@href='/job/subdirjob-mr-feature_branch/1/']")
         wait_idle
         expect(@server.result('subdirjob-mr-feature_branch', 1)).to eq 'SUCCESS'
-        expect(@gitlab.last).to eq '/status/ba46b858929aec55a84a9cb044e988d5d347b8de'
+        expect(@gitlab.last('xtrarepo')).to eq '/status/ba46b858929aec55a84a9cb044e988d5d347b8de - SUCCESS - http://localhost:8080/job/subdirjob-mr-feature_branch/1/'
       end
 
     end
