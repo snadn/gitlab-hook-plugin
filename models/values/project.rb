@@ -41,20 +41,22 @@ module GitlabWebHook
     attr_reader :jenkins_project, :scms, :logger
     attr_reader :matching_scms, :matched_scm, :matched_branch, :matched_refspecs
 
-    def initialize(jenkins_project, logger = Java.java.util.logging.Logger.getLogger(Project.class.name))
+    def initialize(jenkins_project, env_vars = nil , logger = Java.java.util.logging.Logger.getLogger(Project.class.name))
       raise ArgumentError.new("jenkins project is required") unless jenkins_project
       @jenkins_project = jenkins_project
       @logger = logger
       @matching_scms = []
       @matched_refspecs = []
       setup_scms
-    end
-
-    def running_scm(env)
-      running_uri = RepositoryUri.new(env['GIT_URL'])
-      match_scms(running_uri)
-      branch = env['GIT_BRANCH'].split('/')[1..-1].join('/')
-      match_scm(branch, "refs/heads/#{branch}") # exact or not? Account for the '*' instead of asterisk
+      if env_vars
+        repository_uri = RepositoryUri.new(env_vars['GIT_URL'])
+        match_scms(repository_uri)
+        # On merges, GIT_BRANCH is not set
+        if env_vars.has_key? 'GIT_BRANCH'
+          branch = env_vars['GIT_BRANCH'].split('/')[1..-1].join('/')
+          match_scm(branch, "refs/heads/#{branch}") # exact or not? Account for the '*' instead of asterisk
+        end
+      end
     end
 
     def matches_uri?(details_uri)

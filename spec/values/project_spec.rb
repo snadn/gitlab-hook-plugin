@@ -6,8 +6,9 @@ module GitlabWebHook
 
     let(:scm) { double(GitSCM) }
     let(:jenkins_project) { double(AbstractProject, scm: scm, fullName: 'diaspora') }
+    let(:env_vars) { nil }
     let(:logger) { double }
-    let(:subject) { Project.new(jenkins_project, logger) }
+    let(:subject) { Project.new(jenkins_project, env_vars, logger) }
 
     context 'when initializing' do
       it 'requires jenkins project' do

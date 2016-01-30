@@ -19,8 +19,7 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
 
   def prebuild(build, listener)
     env = build.native.environment listener
-    @project = GitlabWebHook::Project.new build.native.project
-    project.running_scm env
+    @project = GitlabWebHook::Project.new( build.native.project , env )
     client.name = repo_namespace(build, env )
     return unless descriptor.commit_status?
     if project.pre_build_merge?
