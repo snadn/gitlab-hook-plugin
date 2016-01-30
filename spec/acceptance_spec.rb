@@ -155,6 +155,7 @@ feature 'GitLab WebHook' do
       expect(page).to have_xpath("//a[@href='/job/multiscm/1/']")
       wait_idle
       expect(@server.result('multiscm', 1)).to eq 'SUCCESS'
+      expect(@gitlab.last).to eq '/comment/e3719eaab95642a63e90da0b9b23de0c9d384785'
     end
 
   end
