@@ -130,10 +130,9 @@ feature 'GitLab WebHook' do
       expect(@server.result('tagbuilder', 1)).to eq 'SUCCESS'
     end
 
-    scenario 'Does not process templates when a tag project exists' do
+    scenario 'Does not autocreate projects when only tag project exists' do
       incoming_payload 'first_push', tagsrepodir
       visit '/'
-      pending 'unimplemented fix'
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_tagsrepo_master']")
     end
 

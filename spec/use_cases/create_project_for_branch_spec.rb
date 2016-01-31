@@ -21,6 +21,13 @@ module GitlabWebHook
       end
     end
 
+    context 'when master project is configured to build tags' do
+      it 'raises appropriate exception' do
+        expect(autocreate_match_project).to receive(:tag?) { 'tag' }
+        expect { subject.with(details) }.to raise_exception(NotFoundException)
+      end
+    end
+
     context 'when branch project already exists' do
       it 'raises appropriate exception' do
         expect(get_jenkins_projects).to receive(:named).and_return([not_matching_project])

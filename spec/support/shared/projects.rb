@@ -23,11 +23,12 @@ RSpec.shared_context 'projects' do
 
   before(:each) do
     allow(build_chooser).to receive(:java_kind_of?).with(InverseBuildChooser) { false }
-    allow(scm1).to receive(:java_kind_of?).with(GitSCM) { true }
-    allow(scm2).to receive(:java_kind_of?).with(GitSCM) { true }
-    allow(scm3).to receive(:java_kind_of?).with(GitSCM) { true }
-    allow(scm1).to receive(:java_kind_of?).with(MultiSCM) { false }
-    allow(scm2).to receive(:java_kind_of?).with(MultiSCM) { false }
-    allow(scm3).to receive(:java_kind_of?).with(MultiSCM) { false }
+    [ scm1 , scm2 , scm3 ].each do |scm|
+      allow(scm).to receive(:java_kind_of?).with(GitSCM) { true }
+      allow(scm).to receive(:java_kind_of?).with(MultiSCM) { false }
+    end
+    all_projects.each do |project|
+      allow(project).to receive(:tag?) { nil }
+    end
   end
 end

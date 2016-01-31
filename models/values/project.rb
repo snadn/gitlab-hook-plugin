@@ -75,6 +75,12 @@ module GitlabWebHook
       scms.find { |scm| scm.isIgnoreNotifyCommit() }
     end
 
+    def tag?
+      if parametrized? && branch_param = get_branch_name_parameter
+        branch_param.name.downcase == 'tagname'
+      end
+    end
+
     def get_branch_name_parameter
       branch_name_param = get_default_parameters.find do |param|
         scms.find do |scm|
