@@ -128,6 +128,7 @@ feature 'GitLab WebHook' do
       expect(page).to have_xpath("//a[@href='/job/tagbuilder/1/']")
       wait_idle
       expect(@server.result('tagbuilder', 1)).to eq 'SUCCESS'
+      expect(@gitlab.last('tagsrepo')).to eq '/comment/c1a1e6918fdbf9fe49ad70060508abcc88b876d4 - [Jenkins CI result SUCCESS](http://localhost:8080/job/tagbuilder/1/)'
     end
 
     scenario 'Does not autocreate projects when only tag project exists' do
