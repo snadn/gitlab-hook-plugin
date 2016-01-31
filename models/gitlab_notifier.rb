@@ -18,9 +18,10 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
   end
 
   def prebuild(build, listener)
-    client.name = repo_namespace(build)
-    return unless descriptor.commit_status?
     env = build.native.environment listener
+    @project = GitlabWebHook::Project.new( build.native.project , env )
+    client.name = repo_namespace(build, env )
+    return unless descriptor.commit_status?
     if project.pre_build_merge?
       sha = post_commit build, listener
     else
@@ -30,7 +31,6 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
   end
 
   def perform(build, launcher, listener)
-    client.name = repo_namespace(build) if client.name.nil?
     mr_id = client.merge_request(project)
     return if mr_id == -1 && descriptor.mr_status_only?
     env = build.native.environment listener
@@ -119,7 +119,7 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
   private
 
   def clone_dir( build )
-    if local_branch = GitlabWebHook::Project.new(build.native.project).local_clone
+    if local_branch = project.local_clone
       build.workspace + local_branch
     else
       build.workspace
@@ -142,11 +142,8 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
     @client = Gitlab::Client.new @descriptor
   end
 
-  def repo_namespace(build)
-    @project = GitlabWebHook::Project.new build.native.project
-    repo_url = @project.scm.repositories.first.getURIs.first
-    repo_path = repo_url.path.split '/'
-    repo_path[-2..-1].join '/'
+  def repo_namespace(build, env)
+    env['GIT_URL'].split('/')[-2..-1].join('/')
   end
 
 end

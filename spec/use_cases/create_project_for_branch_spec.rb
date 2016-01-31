@@ -7,7 +7,7 @@ module GitlabWebHook
 
     let(:repository_uri) { RepositoryUri.new('http://example.com/discourse/discourse.git') }
     let(:details) { double(PayloadRequestDetails, repository_uri: repository_uri, repository_name: 'discourse', branch: 'features/meta', safe_branch: 'features_meta', full_branch_reference: 'refs/heads/features/meta') }
-    let(:master) { double(Project, name: 'discourse', jenkins_project: java_project1) }
+    let(:master) { double(Project, name: 'discourse', jenkins_project: java_project1, multiscm?: false) }
     let(:get_jenkins_projects) { GetJenkinsProjects.new }
     let(:build_scm) { double(BuildScm, with: double(GitSCM)) }
     let(:subject) { CreateProjectForBranch.new(get_jenkins_projects, build_scm) }
@@ -58,6 +58,7 @@ module GitlabWebHook
         allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }
         expect(get_jenkins_projects).to receive(:master).and_return( master )
         expect(jenkins_instance).to receive(:copy).with(java_project1, anything).and_return(new_jenkins_project)
+        expect(master).to receive(:matched_scm) { [ scm ] }
       end
 
       it 'returns a new project' do

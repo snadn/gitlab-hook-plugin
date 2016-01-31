@@ -2,6 +2,8 @@ require 'forwardable'
 
 require_relative '../exceptions/configuration_exception'
 require_relative '../util/settings'
+require_relative 'repository_uri'
+
 
 include Java
 
@@ -29,7 +31,7 @@ module GitlabWebHook
     include Settings
     extend Forwardable
 
-    def_delegators :@jenkins_project, :scm, :schedulePolling, :scheduleBuild2, :fullName, :isParameterized, :isBuildable, :getQuietPeriod, :getProperty, :delete, :description
+    def_delegators :@jenkins_project, :schedulePolling, :scheduleBuild2, :fullName, :isParameterized, :isBuildable, :getQuietPeriod, :getProperty, :delete, :description
 
     alias_method :parametrized?, :isParameterized
     alias_method :buildable?, :isBuildable
@@ -37,24 +39,34 @@ module GitlabWebHook
     alias_method :to_s, :fullName
 
     attr_reader :jenkins_project, :scms, :logger
-    attr_reader :matching_scms
+    attr_reader :matching_scms, :matched_scm, :matched_branch, :matched_refspecs
 
-    def initialize(jenkins_project)
+    def initialize(jenkins_project, env_vars = nil)
       raise ArgumentError.new("jenkins project is required") unless jenkins_project
       @jenkins_project = jenkins_project
       @logger = Java.java.util.logging.Logger.getLogger(self.class.name)
+      @matching_scms = []
+      @matched_refspecs = []
       setup_scms
+      if env_vars
+        repository_uri = RepositoryUri.new(env_vars['GIT_URL'])
+        match_scms(repository_uri)
+        # On merges, GIT_BRANCH is not set
+        if env_vars.has_key? 'GIT_BRANCH'
+          branch = env_vars['GIT_BRANCH'].split('/')[1..-1].join('/')
+          match_scm(branch, "refs/heads/#{branch}") # exact or not? Account for the '*' instead of asterisk
+        end
+      end
     end
 
     def matches_uri?(details_uri)
-      return false unless (git? || multi_scm?)
+      return false unless scms.any?
       matching_scms?(details_uri)
     end
 
     def matches?(details, branch = false, exactly = false)
       return false unless buildable?
-      return false unless matches_uri?(details.repository_uri)
-      if settings.merged_branch_triggering? && merge_to?( branch || details.branch )
+      if merge_to?( branch || details.branch )
         logger.info("project #{self} merge target matches #{branch || details.branch}")
         return true
       end
@@ -66,7 +78,7 @@ module GitlabWebHook
     end
 
     def merge_to?(branch)
-      return false unless pre_build_merge?
+      return false unless settings.merged_branch_triggering? && pre_build_merge?
       merge_params = pre_build_merge.get_options
       merge_params.merge_target == branch
     end
@@ -110,22 +122,29 @@ module GitlabWebHook
     end
 
     def local_clone
-      local = scm.extensions.get RelativeTargetDirectory.java_class
+      local = matching_scms.first.extensions.get RelativeTargetDirectory.java_class
       return local.relative_target_dir if local
+    end
+
+    def multiscm?
+      @multiscm == true
     end
 
     private
 
+    # Although matching_scms is populated in webhook and notifier contexts, the
+    # simple selection of the SCM (first from matching list), might cause bad
+    # notification behaviour in some strange corner cases
     def pre_build_merge
-      @pre_build_merge ||= scm.extensions.get PreBuildMerge.java_class
+      @pre_build_merge ||= matching_scms.first.extensions.get PreBuildMerge.java_class
     end
 
     def matching_scms?(details_uri)
-      matching_scms(details_uri).any?
+      match_scms(details_uri).any?
     end
 
-    def matching_scms(details_uri)
-      @matching_scms ||= scms.select do |scm|
+    def match_scms(details_uri)
+      @matching_scms = scms.select do |scm|
         scm.repositories.find do |repo|
           repo.getURIs().find do |project_repo_uri|
             details_uri.matches?(project_repo_uri)
@@ -150,14 +169,9 @@ module GitlabWebHook
     # the configured refspec and the supplied string, except for the removal of the first
     # path portion when refspec has no slash.
     #
-    def matches_branch?(details, branch = false, exactly = false)
-      refspec = details.full_branch_reference
-      branch = details.branch unless branch
-      matched_refspecs = []
-      matched_branch = nil
-
-      matched_scm = @matching_scms.find do |scm|
-        matched_branch = scm.branches.find do |scm_branch|
+    def match_scm(branch, refspec, exactly = false)
+      @matched_scm = matching_scms.find do |scm|
+        @matched_branch = scm.branches.find do |scm_branch|
           scm.repositories.find do |repo|
             # When BranchSpec seems to be a 'refs' style, we use the reference supplied by
             # gitlab, which is the reference on its local repository. In any other case, we
@@ -177,35 +191,37 @@ module GitlabWebHook
           end
         end
       end
+    end
+
+    def matches_branch?(details, branch = false, exactly = false)
+      refspec = details.full_branch_reference
+      branch = details.branch unless branch
+
+      match_scm(branch, refspec, exactly)
 
       if !matched_branch && parametrized?
         branch_param = get_branch_name_parameter
         if branch_param && branch_param.name.downcase == 'tagname'
-          matched_branch = branch_param if details.tagname
+          @matched_branch = branch_param if details.tagname
         elsif matched_refspecs.any?
-          matched_branch = branch_param unless details.tagname
+          @matched_branch = branch_param unless details.tagname
         end
       end
 
-      matched_scm = @matching_scms.find { |scm| scm.buildChooser.java_kind_of?(InverseBuildChooser) } unless matched_scm
+      @matched_scm = matching_scms.find { |scm| scm.buildChooser.java_kind_of?(InverseBuildChooser) } unless matched_scm
       build_chooser = matched_scm.buildChooser if matched_scm
       build_chooser && build_chooser.java_kind_of?(InverseBuildChooser) ? matched_branch.nil? : !matched_branch.nil?
     end
 
-    def git?
-      scm && scm.java_kind_of?(GitSCM)
-    end
-
-    def multi_scm?
-      scm && MultipleScmsPluginAvailable && scm.java_kind_of?(MultiSCM)
-    end
-
     def setup_scms
       @scms = []
-      if git?
-        @scms << scm
-      elsif multi_scm?
-        @scms.concat(scm.getConfiguredSCMs().select { |scm| scm.java_kind_of?(GitSCM) })
+      if jenkins_project.scm
+        if jenkins_project.scm.java_kind_of?(GitSCM)
+          @scms << jenkins_project.scm
+        elsif MultipleScmsPluginAvailable && jenkins_project.scm.java_kind_of?(MultiSCM)
+          @multiscm = true
+          @scms.concat(jenkins_project.scm.getConfiguredSCMs().select { |scm| scm.java_kind_of?(GitSCM) })
+        end
       end
     end
   end

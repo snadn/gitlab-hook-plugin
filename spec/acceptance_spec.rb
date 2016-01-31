@@ -10,8 +10,10 @@ feature 'GitLab WebHook' do
 
   testrepodir = Dir.mktmpdir [ 'testrepo' , '.git' ]
   tagsrepodir = Dir.mktmpdir [ 'tagsrepo' , '.git' ]
+  multiscmdir = Dir.mktmpdir [ 'multiscm' , '.git' ]
+  altrepodir  = Dir.mktmpdir [ 'altrepo'  , '.git' ]
   xtrarepodir = Dir.mktmpdir [ 'xtrarepo' , '.git' ]
-  repodirs = [ testrepodir , tagsrepodir , xtrarepodir ]
+  repodirs = [ testrepodir , tagsrepodir , multiscmdir , altrepodir , xtrarepodir ]
 
   before(:all) do
     FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), testrepodir
@@ -20,6 +22,11 @@ feature 'GitLab WebHook' do
       infd = File.open 'work/jobs/tagbuilder/config.xml.erb'
       outfd.write( infd.read % { tagsrepodir: tagsrepodir } )
       infd.close
+    end
+    FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), multiscmdir
+    FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), altrepodir
+    File.open('work/jobs/multiscm/config.xml', 'w') do |outfd|
+      outfd.write File.read('work/jobs/multiscm/config.xml.erb') % { multiscmdir1: altrepodir , multiscmdir2: multiscmdir }
     end
     FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), xtrarepodir
     File.open('work/jobs/subdirjob/config.xml', 'w') do |outfd|
@@ -30,6 +37,8 @@ feature 'GitLab WebHook' do
   end
 
   after(:all) do
+    FileUtils.remove_dir altrepodir
+    FileUtils.remove_dir multiscmdir
     FileUtils.remove_dir xtrarepodir
     FileUtils.remove_dir tagsrepodir
     FileUtils.remove_dir testrepodir
@@ -135,6 +144,19 @@ feature 'GitLab WebHook' do
       incoming_payload 'first_push', tagsrepodir
       visit '/'
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_tagsrepo_master']")
+    end
+
+  end
+
+  feature 'Multiple SCMs jobs' do
+
+    scenario 'Builds standard push' do
+      incoming_payload 'first_push', multiscmdir
+      wait_for '/job/multiscm', "//a[@href='/job/multiscm/1/']"
+      expect(page).to have_xpath("//a[@href='/job/multiscm/1/']")
+      wait_idle
+      expect(@server.result('multiscm', 1)).to eq 'SUCCESS'
+      expect(@gitlab.last('multiscm')).to eq '/comment/e3719eaab95642a63e90da0b9b23de0c9d384785 - [Jenkins CI result SUCCESS](http://localhost:8080/job/multiscm/1/)'
     end
 
   end

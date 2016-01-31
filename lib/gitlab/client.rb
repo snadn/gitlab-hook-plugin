@@ -21,7 +21,7 @@ module Gitlab
 
     def merge_request(project)
 
-      src = project.scm.branches.first.name.split '/'
+      src = project.matching_scms.first.branches.first.name.split '/'
       [ '*' , 'origin'].include?(src[0]) ? src.delete_at(0) : nil
       source = src.join '/'
 

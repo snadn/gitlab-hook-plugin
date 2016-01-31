@@ -5,7 +5,7 @@ module GitlabWebHook
     include_context 'settings'
 
     let(:scm) { double(GitSCM) }
-    let(:jenkins_project) { double(AbstractProject, fullName: 'diaspora') }
+    let(:jenkins_project) { double(AbstractProject, scm: scm, fullName: 'diaspora') }
     let(:subject) { Project.new(jenkins_project) }
 
     context 'when initializing' do
@@ -16,12 +16,11 @@ module GitlabWebHook
 
     context 'when exposing jenkins project interface' do
       before(:each) do
-        allow(scm).to receive(:java_kind_of?).with(GitSCM) { true }
-        allow(scm).to receive(:java_kind_of?).with(MultiSCM) { false }
-        allow(jenkins_project).to receive(:scm) { scm }
+        expect(scm).to receive(:java_kind_of?).with(GitSCM) { true }
+        expect(scm).not_to receive(:java_kind_of?)
       end
 
-      [:scm, :schedulePolling, :scheduleBuild2, :fullName, :isParameterized, :isBuildable, :getQuietPeriod, :getProperty, :delete, :description].each do |message|
+      [:schedulePolling, :scheduleBuild2, :fullName, :isParameterized, :isBuildable, :getQuietPeriod, :getProperty, :delete, :description].each do |message|
         it "delegates #{message}" do
           expect(jenkins_project).to receive(message)
           subject.send(message)
@@ -36,18 +35,17 @@ module GitlabWebHook
       end
     end
 
-    context 'when determining if matches repository url and branch' do
+    context 'when determining if matches branch' do
       let(:repository) { double('RemoteConfig', name: 'origin', getURIs: [double(URIish)]) }
       let(:refspec) { double('RefSpec') }
-      let(:details_uri) { double(RepositoryUri) }
+      let(:details_uri) { double(RepositoryUri, matches?: true) }
       let(:details) { double(RequestDetails, branch: 'master', repository_uri: details_uri, full_branch_reference: 'refs/heads/master', tagname: nil) }
       #let(:branch) { BranchSpec.new('origin/master') }
       let(:build_chooser) { double('BuildChooser') }
 
       before(:each) do
-        allow(scm).to receive(:java_kind_of?).with(GitSCM) { true }
-        allow(scm).to receive(:java_kind_of?).with(MultiSCM) { false }
-        allow(jenkins_project).to receive(:scm) { scm }
+        expect(scm).to receive(:java_kind_of?).with(GitSCM) { true }
+        expect(scm).not_to receive(:java_kind_of?).with(MultiSCM)
 
         allow(subject).to receive(:buildable?) { true }
         allow(subject).to receive(:parametrized?) { false }
@@ -59,26 +57,15 @@ module GitlabWebHook
         allow(scm).to receive(:branches) { [BranchSpec.new('origin/master')] }
         allow(scm).to receive(:buildChooser) { build_chooser }
 
-        allow(details_uri).to receive(:matches?) { true }
-
         allow(repository).to receive(:getFetchRefSpecs) { [refspec] }
         allow(refspec).to receive(:matchSource).with(anything) { true }
+
+        expect(subject.matches_uri?(details_uri)).to be(true)
       end
 
       context 'it is not matching' do
         it 'when it is not buildable' do
           allow(subject).to receive(:buildable?) { false }
-          expect(subject.matches?(details)).not_to be
-        end
-
-        it 'when it is not git and is not multiple smsc' do
-          allow(scm).to receive(:java_kind_of?).with(GitSCM) { false }
-          allow(scm).to receive(:java_kind_of?).with(MultiSCM) { false }
-          expect(subject.matches?(details)).not_to be
-        end
-
-        it 'when repo uris do not match' do
-          allow(details_uri).to receive(:matches?) { false }
           expect(subject.matches?(details)).not_to be
         end
 
@@ -95,11 +82,11 @@ module GitlabWebHook
       end
 
       context 'it matches' do
-        it 'when is buildable, is git, repo uris match and branches match' do
+        it 'when is buildable, is git and branches match' do
           expect(subject.matches?(details)).to be
         end
 
-        it 'when is buildable, is multiple smsc, repo uris match and branches match' do
+        it 'when is buildable, is multiple scms and branches match' do
           allow(scm).to receive(:java_kind_of?).with(GitSCM) { false }
           allow(scm).to receive(:java_kind_of?).with(MultiSCM) { true }
           expect(subject.matches?(details)).to be
@@ -203,7 +190,7 @@ module GitlabWebHook
 
       let(:repository) { double('RemoteConfig', name: 'origin', getURIs: [double(URIish)]) }
       let(:refspec) { double('RefSpec') }
-      let(:details_uri) { double(RepositoryUri) }
+      let(:details_uri) { double(RepositoryUri, matches?: true) }
       let(:details) { double(RequestDetails, branch: 'master', repository_uri: details_uri, full_branch_reference: nil) }
       let(:matching_branch) { double('BranchSpec', matches: true, name: 'origin') }
       let(:non_matching_branch) { double('BranchSpec', matches: false, name: 'origin') }
@@ -223,12 +210,10 @@ module GitlabWebHook
         allow(inverse_git_scm).to receive(:buildChooser) { inverse_build_chooser }
         allow(inverse_git_scm).to receive(:extensions) { double('ExtensionsList', get: nil) }
 
-        allow(scm).to receive(:java_kind_of?).with(GitSCM) { false }
-        allow(scm).to receive(:java_kind_of?).with(MultiSCM) { true }
+        expect(scm).to receive(:java_kind_of?).with(GitSCM) { false }
+        expect(scm).to receive(:java_kind_of?).with(MultiSCM) { true }
         allow(scm).to receive(:getConfiguredSCMs) { [regular_git_scm, not_git_scm, inverse_git_scm] }
         allow(scm).to receive(:extensions) { double('ExtensionsList', get: nil) }
-
-        allow(jenkins_project).to receive(:scm) { scm }
 
         allow(subject).to receive(:buildable?) { true }
         allow(subject).to receive(:parametrized?) { false }
@@ -236,10 +221,10 @@ module GitlabWebHook
         allow(default_build_chooser).to receive(:java_kind_of?).with(InverseBuildChooser) { false }
         allow(inverse_build_chooser).to receive(:java_kind_of?).with(InverseBuildChooser) { true }
 
-        allow(details_uri).to receive(:matches?) { true }
-
         allow(repository).to receive(:getFetchRefSpecs) { [refspec] }
         allow(refspec).to receive(:matchSource).with(anything) { true }
+
+        expect(subject.matches_uri?(details_uri)).to be(true)
       end
 
       context 'when no scm applies' do
@@ -282,9 +267,9 @@ module GitlabWebHook
 
       before (:each) do
         allow(scm).to receive(:branches) { [branch] }
-        allow(jenkins_project).to receive(:scm) { scm }
         allow(subject).to receive(:buildable?) { true }
         allow(subject).to receive(:parametrized?) { false }
+        expect(subject.matches_uri?(details.repository_uri)).to be(true)
       end
 
       context "branchspec is 'master'" do
@@ -330,9 +315,9 @@ module GitlabWebHook
 
       before (:each) do
         allow(scm).to receive(:branches) { [branch] }
-        allow(jenkins_project).to receive(:scm) { scm }
         allow(subject).to receive(:buildable?) { true }
         allow(subject).to receive(:parametrized?) { false }
+        expect(subject.matches_uri?(details.repository_uri)).to be(true)
       end
 
       context "branchspec is 'master'" do
@@ -389,14 +374,14 @@ module GitlabWebHook
       let(:details) { double(RequestDetails, repository_uri: details_uri, full_branch_reference: 'refs/tags/v1.0.0', branch: 'tags/v1.0.0', tagname: 'v1.0.0') }
 
       before (:each) do
-        allow(jenkins_project).to receive(:scm) { scm }
-        allow(scm).to receive(:java_kind_of?).with(GitSCM) { true }
-        allow(scm).to receive(:java_kind_of?).with(MultiSCM) { false }
+        expect(scm).to receive(:java_kind_of?).with(GitSCM) { true }
+        expect(scm).not_to receive(:java_kind_of?).with(MultiSCM)
 
         allow(refspec).to receive(:matchSource).with(anything) { true }
         allow(build_chooser).to receive(:java_kind_of?).with(InverseBuildChooser) { false }
 
         allow(subject).to receive(:buildable?) { true }
+        expect(subject.matches_uri?(details_uri)).to be(true)
       end
 
       let(:branch_name_parameter) { double(ParametersDefinitionProperty, name: 'BRANCH_NAME') }
@@ -433,9 +418,8 @@ module GitlabWebHook
 
     context 'when looking for "Merge before build" extension' do
       before(:each) do
-        allow(scm).to receive(:java_kind_of?).with(GitSCM) { true }
-        allow(scm).to receive(:java_kind_of?).with(MultiSCM) { false }
-        allow(jenkins_project).to receive(:scm) { scm }
+        expect(scm).to receive(:java_kind_of?).with(GitSCM) { true }
+        expect(scm).not_to receive(:java_kind_of?).with(MultiSCM)
       end
 
       context 'method pre_build_merge? returns' do
