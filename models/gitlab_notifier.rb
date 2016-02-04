@@ -26,7 +26,7 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
     else
       sha = env['GIT_COMMIT']
     end
-    client.post_status( sha , 'running' , env['BUILD_URL'] )
+    client.post_status( sha , 'running' , env['BUILD_URL'] ).tap{ |msg| listener.info( "prebuild : #{msg}" ) }
   end
 
   def perform(build, launcher, listener)
@@ -39,7 +39,7 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
     else
       sha = env['GIT_COMMIT']
     end
-    client.post_status( sha , build.native.result , env['BUILD_URL'] , descriptor.commit_status? ? nil : mr_id )
+    client.post_status( sha , build.native.result , env['BUILD_URL'] , descriptor.commit_status? ? nil : mr_id ).tap{ |msg| listener.info( "perform : #{msg}" ) }
   end
 
   class GitlabNotifierDescriptor < Jenkins::Model::DefaultDescriptor
