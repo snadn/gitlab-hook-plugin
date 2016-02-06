@@ -241,7 +241,7 @@ feature 'GitLab WebHook' do
       expect(page).to have_xpath("//a[@href='/job/testrepo/4/']")
       wait_idle
       expect(@server.result('testrepo', 3)).to eq 'SUCCESS'
-      expect(@gitlab.last('testrepo')).to eq '/status/6957dc21ae95f0c70931517841a9eb461f94548c - SUCCESS - http://localhost:8080/job/testrepo/4/'
+      expect(@gitlab.last('testrepo')).to eq '/status/6957dc21ae95f0c70931517841a9eb461f94548c - success - http://localhost:8080/job/testrepo/4/'
     end
 
     feature 'Post status to commit on merged branch' do
@@ -254,7 +254,7 @@ feature 'GitLab WebHook' do
         expect(page).to have_xpath("//a[@href='/job/testrepo-mr-feature_branch/1/']")
         wait_idle
         expect(@server.result('testrepo-mr-feature_branch', 1)).to eq 'SUCCESS'
-        expect(@gitlab.last('testrepo')).to eq '/status/ba46b858929aec55a84a9cb044e988d5d347b8de - SUCCESS - http://localhost:8080/job/testrepo-mr-feature_branch/1/'
+        expect(@gitlab.last('testrepo')).to eq '/status/ba46b858929aec55a84a9cb044e988d5d347b8de - success - http://localhost:8080/job/testrepo-mr-feature_branch/1/'
       end
 
       scenario 'when push is done on merge destination branch' do
@@ -264,7 +264,7 @@ feature 'GitLab WebHook' do
         expect(page).to have_xpath("//a[@href='/job/testrepo-mr-feature_branch/2/']")
         wait_idle
         expect(@server.result('testrepo-mr-feature_branch', 2)).to eq 'SUCCESS'
-        expect(@gitlab.last('testrepo')).to eq '/status/ba46b858929aec55a84a9cb044e988d5d347b8de - SUCCESS - http://localhost:8080/job/testrepo-mr-feature_branch/2/'
+        expect(@gitlab.last('testrepo')).to eq '/status/ba46b858929aec55a84a9cb044e988d5d347b8de - success - http://localhost:8080/job/testrepo-mr-feature_branch/2/'
       end
 
     end
@@ -277,7 +277,7 @@ feature 'GitLab WebHook' do
         expect(page).to have_xpath("//a[@href='/job/subdirjob/1/']")
         wait_idle
         expect(@server.result('subdirjob', 1)).to eq 'SUCCESS'
-        expect(@gitlab.last('xtrarepo')).to eq '/status/e3719eaab95642a63e90da0b9b23de0c9d384785 - SUCCESS - http://localhost:8080/job/subdirjob/1/'
+        expect(@gitlab.last('xtrarepo')).to eq '/status/e3719eaab95642a63e90da0b9b23de0c9d384785 - success - http://localhost:8080/job/subdirjob/1/'
       end
 
       scenario 'Post status to source branch commit' do
@@ -290,7 +290,7 @@ feature 'GitLab WebHook' do
         expect(page).to have_xpath("//a[@href='/job/subdirjob-mr-feature_branch/1/']")
         wait_idle
         expect(@server.result('subdirjob-mr-feature_branch', 1)).to eq 'SUCCESS'
-        expect(@gitlab.last('xtrarepo')).to eq '/status/ba46b858929aec55a84a9cb044e988d5d347b8de - SUCCESS - http://localhost:8080/job/subdirjob-mr-feature_branch/1/'
+        expect(@gitlab.last('xtrarepo')).to eq '/status/ba46b858929aec55a84a9cb044e988d5d347b8de - success - http://localhost:8080/job/subdirjob-mr-feature_branch/1/'
       end
 
     end

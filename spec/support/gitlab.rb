@@ -108,7 +108,7 @@ class GitLabMockup
       json author: author , note: request.body.string
     end
 
-    post "/api/v3/projects/:project_id/repository/commits/:sha/status" do
+    post "/api/v3/projects/:project_id/statuses/:sha" do
       reponame = @@repos[params['project_id'].to_i]
       @@lasts[reponame] = "/status/#{params[:sha]} - #{params[:state]} - #{params[:target_url]}"
       json state: params[:state] , target_url: params[:target_url]

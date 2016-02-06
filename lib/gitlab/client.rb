@@ -39,6 +39,14 @@ module Gitlab
 
     def post_status(commit, status, ci_url, mr_id=nil)
       if mr_id.nil?
+        status = case status.to_s
+          when 'UNSTABLE', 'FAILURE', 'NOT_BUILT'
+            'failed'
+          when 'ABORTED'
+            'canceled'
+          else
+            status.to_s.downcase
+          end
         post_commit_status(commit, status, ci_url)
       elsif mr_id == -1
         post_commit_note(commit, status, ci_url)
@@ -52,7 +60,7 @@ module Gitlab
     attr_accessor :gitlab_url, :token
 
     def post_commit_status(commit, status, ci_url)
-      url = "projects/#{id}/repository/commits/#{commit}/status"
+      url = "projects/#{id}/statuses/#{commit}"
       do_request url, :state => status, :target_url => ci_url
     end
 
