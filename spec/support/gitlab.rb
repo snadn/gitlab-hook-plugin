@@ -99,19 +99,19 @@ class GitLabMockup
     post "/api/v3/projects/:project_id/merge_request/:mr_id/comments" do
       reponame = @@repos[params['project_id'].to_i]
       @@lasts[reponame] = "/mr_comment/#{params[:mr_id]} - #{params[:note]}"
-      json author: author , note: request.body.string
+      json author: author , note: request.body.string , created_at: Time.new.utc.strftime("%FT%TZ")
     end
 
     post "/api/v3/projects/:project_id/repository/commits/:sha/comments" do
       reponame = @@repos[params['project_id'].to_i]
       @@lasts[reponame] = "/comment/#{params[:sha]} - #{params[:note]}"
-      json author: author , note: request.body.string
+      json author: author , note: request.body.string , created_at: Time.new.utc.strftime("%FT%TZ")
     end
 
     post "/api/v3/projects/:project_id/repository/commits/:sha/status" do
       reponame = @@repos[params['project_id'].to_i]
       @@lasts[reponame] = "/status/#{params[:sha]} - #{params[:state]} - #{params[:target_url]}"
-      json state: params[:state] , target_url: params[:target_url]
+      json state: params[:state] , target_url: params[:target_url] , created_at: Time.new.utc.strftime("%FT%TZ")
     end
 
   end
