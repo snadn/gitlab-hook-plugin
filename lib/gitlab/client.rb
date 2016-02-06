@@ -102,11 +102,12 @@ module Gitlab
 
       res = http.request req
 
-      if [ "200" , "201" ].include? res.code
-        JSON.parse res.body
-      else
-        logger.severe "Bad Request '#{url}' : #{res.code} - #{res.msg}"
-        logger.info "Server response : #{res.body}"
+      JSON.parse(res.body).tap do |out|
+        unless [ "200" , "201" ].include? res.code
+          logger.severe "Bad Request '#{url}' : #{res.code} - #{res.msg}"
+          logger.info "Server response : #{JSON.pretty_generate(out)}"
+        end
+        out['code'] = res.code if data
       end
     end
 
