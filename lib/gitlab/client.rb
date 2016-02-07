@@ -76,9 +76,9 @@ module Gitlab
 
     def repo_id
       do_request("projects/search/#{name}").each do |repo|
-        return repo['id'] if repo['ssh_url_to_repo'].end_with?(ssh_url)
+        return repo['id'] if repo.has_key?('id') && repo['ssh_url_to_repo'].end_with?(ssh_url)
       end
-      raise StandardError.new("No valid match")
+      raise StandardError.new("No gitlab project matches #{name}")
     end
 
     def do_request(url, data=nil)
