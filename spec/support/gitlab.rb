@@ -68,6 +68,8 @@ class GitLabMockup
           'default_branch' => 'master',
           'http_url_to_repo' => "http://localhost/tmp/#{dirname}.git",
           'ssh_url_to_repo' => "localhost:/tmp/#{dirname}.git",
+          'path' => dirname,
+          'path_with_namespace' => "tmp/#{dirname}",
           'web_url' => "http://localhost/tmp/#{name}"
         }
       end

@@ -4,7 +4,7 @@ require 'json'
 module Gitlab
   class Client
 
-    attr_reader :id, :name, :code, :msg
+    attr_reader :id, :namespace, :name, :code, :msg
 
     def initialize(descriptor, repo_name=nil)
       @gitlab_url = descriptor.gitlab_url
@@ -13,6 +13,7 @@ module Gitlab
     end
 
     def name=(repo_namespace)
+      @namespace = repo_namespace.split('/')[-2]
       if @name = repo_namespace.split('/').last
         @name.slice!(/.git$/)
         @id = repo_id
@@ -78,7 +79,7 @@ module Gitlab
       matches = do_request("projects/search/#{name}")
       if matches.is_a? Array
         matches.each do |repo|
-          return repo['id'] if name == repo['path']
+          return repo['id'] if "#{namespace}/#{name}" == repo['path_with_namespace']
         end
         @msg = "No gitlab project matches #{name}"
       else
