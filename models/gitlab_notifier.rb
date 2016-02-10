@@ -132,7 +132,7 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
     if launcher.execute('git', 'log', '-1', '--oneline' ,'--format=%P', {:out => gitlog, :chdir => clone_dir(build)} ) == 0
       parents = gitlog.string.split
     else
-      listener.warning( "git-log failed : '#{parents.join(' ')}'" )
+      listener.warn( "git-log failed : '#{parents.join(' ')}'" )
     end
     parents.last
   end
