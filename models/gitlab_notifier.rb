@@ -19,6 +19,10 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
 
   def prebuild(build, listener)
     client.name = repo_namespace(build)
+    unless client.id
+      listener.error("GitLab error : #{client.msg}")
+      return
+    end
     return unless descriptor.commit_status?
     env = build.native.environment listener
     if project.pre_build_merge?
@@ -34,7 +38,7 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
   end
 
   def perform(build, launcher, listener)
-    client.name = repo_namespace(build) if client.name.nil?
+    return unless client.id
     mr_id = client.merge_request(project)
     return if mr_id == -1 && descriptor.mr_status_only?
     env = build.native.environment listener

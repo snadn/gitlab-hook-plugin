@@ -4,7 +4,7 @@ require 'json'
 module Gitlab
   class Client
 
-    attr_reader :id, :ssh_url, :name
+    attr_reader :id, :ssh_url, :name, :msg
 
     def initialize(descriptor, repo_name=nil)
       @gitlab_url = descriptor.gitlab_url
@@ -76,11 +76,16 @@ module Gitlab
 
     def repo_id
       matches = do_request("projects/search/#{name}")
-      raise StandardError.new("Mala cosa #{matches}") unless matches.is_a? Array
-      matches.each do |repo|
-        return repo['id'] if repo.has_key?('id') && repo['ssh_url_to_repo'].end_with?(ssh_url)
+      if matches.is_a? Array
+        matches.each do |repo|
+          return repo['id'] if repo.has_key?('id') && repo['ssh_url_to_repo'].end_with?(ssh_url)
+        end
+        @msg = "No gitlab project matches #{name}"
+      else
+        logger.severe("Cannot contact GitLab server : #{msg}")
+        @msg = matches['message']
       end
-      raise StandardError.new("No gitlab project matches #{name}")
+      return
     end
 
     def do_request(url, data=nil)
@@ -104,12 +109,17 @@ module Gitlab
 
       res = http.request req
 
-      JSON.parse(res.body).tap do |out|
-        unless [ "200" , "201" ].include? res.code
-          logger.severe "Bad Request '#{url}' : #{res.code} - #{res.msg}"
-          logger.info "Server response : #{JSON.pretty_generate(out)}"
+      begin
+        JSON.parse(res.body).tap do |out|
+          unless [ "200" , "201" ].include? res.code
+            logger.severe "Bad Request '#{url}' : #{res.code} - #{res.msg}"
+            logger.info "Server response : #{JSON.pretty_generate(out)}"
+          end
+          out['code'] = res.code if data
         end
-        out['code'] = res.code if data
+      rescue JSON::ParserError
+        logger.severe( "GitLab response is not JSON" )
+        @msg = "GitLab response is not JSON"
       end
     end
 
