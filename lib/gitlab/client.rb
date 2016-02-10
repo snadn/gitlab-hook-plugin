@@ -75,7 +75,9 @@ module Gitlab
     end
 
     def repo_id
-      do_request("projects/search/#{name}").each do |repo|
+      matches = do_request("projects/search/#{name}")
+      raise StandardError.new("Mala cosa #{matches}") unless matches.is_a? Array
+      matches.each do |repo|
         return repo['id'] if repo.has_key?('id') && repo['ssh_url_to_repo'].end_with?(ssh_url)
       end
       raise StandardError.new("No gitlab project matches #{name}")
