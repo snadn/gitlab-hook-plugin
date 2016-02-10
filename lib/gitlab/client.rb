@@ -4,7 +4,7 @@ require 'json'
 module Gitlab
   class Client
 
-    attr_reader :id, :ssh_url, :name, :msg
+    attr_reader :id, :ssh_url, :name, :code, :msg
 
     def initialize(descriptor, repo_name=nil)
       @gitlab_url = descriptor.gitlab_url
@@ -82,8 +82,8 @@ module Gitlab
         end
         @msg = "No gitlab project matches #{name}"
       else
-        logger.severe("Cannot contact GitLab server : #{msg}")
         @msg = matches['message']
+        logger.severe("Cannot contact GitLab server : #{msg}")
       end
       return
     end
@@ -113,9 +113,9 @@ module Gitlab
         JSON.parse(res.body).tap do |out|
           unless [ "200" , "201" ].include? res.code
             logger.severe "Bad Request '#{url}' : #{res.code} - #{res.msg}"
-            logger.info "Server response : #{JSON.pretty_generate(out)}"
+            logger.severe "Server response : #{JSON.pretty_generate(out)}"
           end
-          out['code'] = res.code if data
+          @code = res.code
         end
       rescue JSON::ParserError
         logger.severe( "GitLab response is not JSON" )

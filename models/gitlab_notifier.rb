@@ -31,7 +31,7 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
       sha = env['GIT_COMMIT']
     end
     client.post_status( sha , 'running' , env['BUILD_URL'] ).tap do |msg|
-      unless [ "200" , "201" ].include? msg['code']
+      unless [ "200" , "201" ].include? client.code
         listener.warn("Failed gitlab notification : #{msg['message']}")
       end
     end
@@ -48,7 +48,7 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
       sha = env['GIT_COMMIT']
     end
     client.post_status( sha , build.native.result , env['BUILD_URL'] , descriptor.commit_status? ? nil : mr_id ).tap do |msg|
-      unless [ "200" , "201" ].include? msg['code']
+      unless [ "200" , "201" ].include? client.code
         listener.warn("Failed gitlab notification : #{msg['message']}")
       end
     end
