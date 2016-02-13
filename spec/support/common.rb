@@ -4,8 +4,8 @@ require 'zip'
 
 require 'fileutils'
 
-def incoming_payload(filename, reponame, tempdir)
-  uri = URI "http://localhost:8080/gitlab/build_now"
+def incoming_payload(filename, reponame, tempdir, project_name=nil)
+  uri = URI "http://localhost:8080/gitlab/build_now#{"/#{project_name}" if project_name}"
   req = Net::HTTP::Post.new(uri.request_uri, initheader = {'Content-Type' =>'application/json'})
   req.body = File.read("spec/fixtures/payloads/#{filename}.json") % { reponame: reponame, repodir: tempdir }
   http = Net::HTTP.new uri.host, uri.port
