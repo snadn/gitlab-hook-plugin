@@ -2,7 +2,7 @@ require 'gitlab'
 
 class GitlabNotifier < Jenkins::Tasks::Publisher
 
-  display_name 'Gitlab commit status publisher'
+  display_name 'GitLab commit status publisher'
 
   transient :descriptor, :client
 
@@ -20,17 +20,28 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
   def prebuild(build, listener)
     env = build.native.environment listener
     @project = GitlabWebHook::Project.new( build.native.project , env )
-    client.name = repo_namespace(build, env )
+    client.name = repo_namespace(build, env)
+    unless client.id
+      listener.error("GitLab error : #{client.msg}")
+      return
+    end
     return unless descriptor.commit_status?
     if project.pre_build_merge?
       sha = post_commit build, listener
     else
       sha = env['GIT_COMMIT']
     end
-    client.post_status( sha , 'running' , env['BUILD_URL'] )
+    client.post_status( sha , 'running' , env['BUILD_URL'] ).tap do |msg|
+      unless [ "200" , "201" ].include? client.code
+        listener.warn("Failed gitlab notification : #{msg['message']}")
+      else
+        listener.info("GitLab notified about building of #{sha}")
+      end
+    end
   end
 
   def perform(build, launcher, listener)
+    return unless client.id
     mr_id = client.merge_request(project)
     return if mr_id == -1 && descriptor.mr_status_only?
     env = build.native.environment listener
@@ -39,7 +50,13 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
     else
       sha = env['GIT_COMMIT']
     end
-    client.post_status( sha , build.native.result , env['BUILD_URL'] , descriptor.commit_status? ? nil : mr_id )
+    client.post_status( sha , build.native.result , env['BUILD_URL'] , descriptor.commit_status? ? nil : mr_id ).tap do |msg|
+      unless [ "200" , "201" ].include? client.code
+        listener.warn("Failed gitlab notification : #{msg['message']}")
+      else
+        listener.info("GitLab notified about #{sha} result")
+      end
+    end
   end
 
   class GitlabNotifierDescriptor < Jenkins::Model::DefaultDescriptor
