@@ -160,7 +160,7 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
   end
 
   def repo_namespace(build, env)
-    env['GIT_URL'].split('/')[-2..-1].join('/')
+    env['GIT_URL'].split(':').last.split('/')[-2..-1].join('/')
   end
 
 end
