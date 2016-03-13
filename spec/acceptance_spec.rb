@@ -9,6 +9,7 @@ Autologin.enable
 feature 'GitLab WebHook' do
 
   testrepodir = Dir.mktmpdir [ 'testrepo' , '.git' ]
+  specificdir = Dir.mktmpdir [ 'specific' , '.git' ]
   tagsrepodir = Dir.mktmpdir [ 'tagsrepo' , '.git' ]
   multiscmdir = Dir.mktmpdir [ 'multiscm' , '.git' ]
   altrepodir  = Dir.mktmpdir [ 'altrepo'  , '.git' ]
@@ -17,11 +18,13 @@ feature 'GitLab WebHook' do
 
   before(:all) do
     FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), testrepodir
+    FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), specificdir
+    File.open('work/jobs/specificjob/config.xml', 'w') do |outfd|
+      outfd.write File.read('work/jobs/specificjob/config.xml.erb') % { specificdir: specificdir }
+    end
     FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), tagsrepodir
     File.open('work/jobs/tagbuilder/config.xml', 'w') do |outfd|
-      infd = File.open 'work/jobs/tagbuilder/config.xml.erb'
-      outfd.write( infd.read % { tagsrepodir: tagsrepodir } )
-      infd.close
+      outfd.write( File.read('work/jobs/tagbuilder/config.xml.erb') % { tagsrepodir: tagsrepodir } )
     end
     FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), multiscmdir
     FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), altrepodir
@@ -41,6 +44,7 @@ feature 'GitLab WebHook' do
     FileUtils.remove_dir multiscmdir
     FileUtils.remove_dir xtrarepodir
     FileUtils.remove_dir tagsrepodir
+    FileUtils.remove_dir specificdir
     FileUtils.remove_dir testrepodir
     @server.kill
     @gitlab.kill
@@ -125,6 +129,30 @@ feature 'GitLab WebHook' do
       incoming_payload 'branch_deletion', testrepodir
       visit '/'
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_feature_branch']")
+    end
+
+  end
+
+  feature 'When a specific project is triggered' do
+
+    scenario 'Finds fallback template' do
+      visit '/'
+      expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_simplejob']")
+    end
+
+    scenario 'Builds the given project' do
+      incoming_payload 'branch_creation', specificdir, 'specificjob'
+      visit '/'
+      expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_specificjob']")
+      wait_for '/job/specificjob', "//a[@href='/job/specificjob/1/']"
+      expect(page).to have_xpath("//a[@href='/job/specificjob/1/']")
+      wait_idle
+      expect(@server.result('specificjob', 1)).to eq 'SUCCESS'
+    end
+
+    scenario 'Does not autocreate project' do
+      visit '/'
+      expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_specific_feature_branch']")
     end
 
   end

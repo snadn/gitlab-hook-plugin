@@ -33,6 +33,17 @@ module GitlabWebHook
     get '/build_now', &build_now
     post '/build_now', &build_now
 
+    post '/build_now/:project_name' do
+      get_jenkins_projects = GetJenkinsProjects.new
+      if projects = get_jenkins_projects.named(params[:project_name])
+        project = projects.first
+        cause_builder = GetBuildCause.new
+        actions_builder = GetBuildActions.new
+        details = parse_request
+        project.scheduleBuild2(project.getQuietPeriod(), cause_builder.with(details), actions_builder.with(project, details))
+      end
+    end
+
     error = lambda do
       unknown_route
     end
@@ -89,6 +100,7 @@ module GitlabWebHook
           '   - /ping',
           '   - /notify_commit',
           '   - /build_now',
+          '   - /build_now/:project_name',
           'See https://github.com/elvanja/jenkins-gitlab-hook-plugin for details'
       ].join("\n")
       logger.warning(message)
