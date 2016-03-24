@@ -4,7 +4,7 @@ require 'json'
 module Gitlab
   class Client
 
-    attr_reader :id, :namespace, :name, :code, :msg
+    attr_reader :gitlab_url, :id, :namespace, :name, :code, :msg
 
     def initialize(descriptor, repo_name=nil)
       @gitlab_url = descriptor.gitlab_url
@@ -58,7 +58,7 @@ module Gitlab
 
     private
 
-    attr_accessor :gitlab_url, :token
+    attr_accessor :token
 
     def post_commit_status(commit, status, ci_url)
       url = "projects/#{id}/statuses/#{commit}"

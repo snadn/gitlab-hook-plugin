@@ -20,6 +20,10 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
   def prebuild(build, listener)
     env = build.native.environment listener
     @project = GitlabWebHook::Project.new( build.native.project , env )
+    unless client.gitlab_url
+      listener.warn("No GitLab url configured, skipping reporting")
+      return
+    end
     client.name = repo_namespace(build, env)
     unless client.id
       listener.error("GitLab error : #{client.msg}")
