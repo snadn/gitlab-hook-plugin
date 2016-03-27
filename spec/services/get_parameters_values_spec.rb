@@ -22,8 +22,7 @@ module GitlabWebHook
 
         context 'with branch parameter' do
 
-          let(:tag_payload) { JSON.parse(File.read('spec/fixtures/default_tag.json')) }
-          let(:tag_details) { PayloadRequestDetails.new(tag_payload) }
+          include_context 'tag_details'
 
           before :each do
             allow(project).to receive(:get_branch_name_parameter) { branch_parameter }

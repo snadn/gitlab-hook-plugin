@@ -1,7 +1,7 @@
 {
     "ref": "refs/heads/master",
-    "repo_url": "http://localhost/diaspora/peronospora",
+    "repo_url": "http://localhost/mike/peronospora",
     "repo_name": "Peronospora",
-    "repo_homepage": "http://localhost/diaspora/peronospora",
+    "repo_homepage": "http://localhost/mike/peronospora",
     "delete_branch_commit": false
 }

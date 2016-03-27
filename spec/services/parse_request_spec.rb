@@ -3,20 +3,20 @@ require 'spec_helper'
 module GitlabWebHook
   describe ParseRequest do
     let(:parameters) { JSON.parse(File.read('spec/fixtures/default_params.json')) }
-    let(:body) { File.new('spec/fixtures/default_payload.json') }
+    let(:body) { File.new('spec/fixtures/8x/push.json') }
     let(:request) { OpenStruct.new(body: body) }
 
     context 'with data from params' do
       it 'builds parameters influenced details' do
         details = subject.from(parameters, nil)
-        expect(details.repository_url).to eq('http://localhost/diaspora/peronospora')
+        expect(details.repository_url).to eq('http://localhost/mike/peronospora')
       end
     end
 
     context 'with data from request' do
       it 'builds payload influenced details' do
         details = subject.from({}, request)
-        expect(details.repository_url).to eq('git@example.com:diaspora/diaspora.git')
+        expect(details.repository_url).to eq('git@example.com:mike/diaspora.git')
       end
     end
 

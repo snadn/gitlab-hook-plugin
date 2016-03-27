@@ -136,7 +136,7 @@ module GitlabWebHook
     end
 
     context 'with flat payload' do
-      details = {
+      param_details = {
         repository_url: 'git@example.com:diaspora/diaspora.git',
         repository_name: 'Diaspora',
         repository_homepage: 'http://example.com/diaspora/diaspora',
@@ -144,10 +144,10 @@ module GitlabWebHook
         branch: 'master'
       }
 
-      let(:payload) { JSON.parse(File.read('spec/fixtures/default_payload.json')) }
+      include_context 'details'
 
       before(:each) do
-        details.each { |detail, value| allow(subject).to receive(detail) { value } }
+        param_details.each { |detail, value| allow(subject).to receive(detail) { value } }
         allow(subject).to receive(:get_payload) { payload }
       end
 
@@ -155,7 +155,7 @@ module GitlabWebHook
         expect(subject.flat_payload[%w(repository name).join(FlatKeysHash::FLATTENED_KEYS_DELIMITER)]).to eq('Diaspora')
       end
 
-      details.each do |detail, value|
+      param_details.each do |detail, value|
         it "appends :#{detail} from details" do
           expect(subject.flat_payload[detail.to_s]).to eq(value)
         end
