@@ -35,13 +35,13 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
     else
       sha = env['GIT_COMMIT']
     end
-    client.post_status( sha , 'running' , env['BUILD_URL'] ).tap do |msg|
-      unless [ "200" , "201" ].include? client.code
-        listener.warn("Failed gitlab notification : #{msg['message']}")
-      else
-        listener.info("GitLab notified about building of #{sha}")
-      end
-    end
+  #  client.post_status( sha , 'running' , env['BUILD_URL'] ).tap do |msg|
+  #    unless [ "200" , "201" ].include? client.code
+  #      listener.warn("Failed gitlab notification : #{msg['message']}")
+  #    else
+  #      listener.info("GitLab notified about building of #{sha}")
+  #    end
+  #  end
   end
 
   def perform(build, launcher, listener)
