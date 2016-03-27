@@ -19,7 +19,7 @@ module GitlabWebHook
         return [ 'No merge-request project candidates'] unless candidates
 
         candidates.select! do |project|
-          project.matches?(details, details.branch, true) && project.merge_to?(details.target_branch)
+          project.matches?(details, details.branch, true) && project.merge_to?(details.target_branch, true)
         end
 
         case details.state

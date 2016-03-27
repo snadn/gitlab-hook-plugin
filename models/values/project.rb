@@ -77,8 +77,8 @@ module GitlabWebHook
       pre_build_merge ? true : false
     end
 
-    def merge_to?(branch)
-      return false unless settings.merged_branch_triggering? && pre_build_merge?
+    def merge_to?(branch, is_mr = false)
+      return false unless ( is_mr || settings.merged_branch_triggering? ) && pre_build_merge?
       merge_params = pre_build_merge.get_options
       merge_params.merge_target == branch
     end
