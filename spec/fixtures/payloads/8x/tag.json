@@ -1,0 +1,36 @@
+{
+  "object_kind": "tag_push",
+  "ref": "refs/tags/tag1",
+  "before": "0000000000000000000000000000000000000000",
+  "after": "c1a1e6918fdbf9fe49ad70060508abcc88b876d4",
+  "user_id": 0,
+  "user_name": "root",
+  "project_id": 0,
+  "project":{
+    "name":"%{reponame}",
+    "description":"",
+    "web_url":"http://localhost/tmp/%{reponame}",
+    "avatar_url":null,
+    "git_ssh_url":"localhost:%{repodir}",
+    "git_http_url":"http://localhost/tmp/%{reponame}.git",
+    "namespace":"Tmp",
+    "visibility_level":0,
+    "path_with_namespace":"tmp/%{reponame}",
+    "default_branch":"master",
+    "homepage":"http://localhost/tmp/%{reponame}",
+    "url":"localhost:%{repodir}",
+    "ssh_url":"localhost:%{repodir}",
+    "http_url":"http://localhost/tmp/%{reponame}.git"
+  },
+  "repository": {
+    "name": "%{reponame}",
+    "url": "localhost:%{repodir}",
+    "description": "",
+    "homepage": "https://localhost/tmp/%{reponame}",
+    "git_http_url":"http://localhost/tmp/%{reponame}.git",
+    "git_ssh_url":"localhost:%{repodir}",
+    "visibility_level":0
+  },
+  "commits": [],
+  "total_commits_count": 0
+}
