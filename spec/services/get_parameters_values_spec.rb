@@ -142,12 +142,11 @@ module GitlabWebHook
     end
 
     context 'with merge request data in payload' do
-      let(:payload) { JSON.parse(File.read('spec/fixtures/new_merge_request_payload.json')) }
-      let(:details) { MergeRequestDetails.new(payload) }
+      include_context 'mr_details'
 
       context 'when validating' do
         it 'requires project' do
-          expect { subject.with_mr(nil, details) }.to raise_exception(ArgumentError)
+          expect { subject.with_mr(nil, mr_details) }.to raise_exception(ArgumentError)
         end
 
         it 'requires details' do
@@ -158,12 +157,12 @@ module GitlabWebHook
       context 'with parameters present in payload data' do
         it 'recognizes root keys' do
           allow(project).to receive(:get_default_parameters) { [build_parameter('source_branch')] }
-          expect(subject.with_mr(project, details)[0].value).to eq('ms-viewport')
+          expect(subject.with_mr(project, mr_details)[0].value).to eq('ms-viewport')
         end
 
         it 'do not recognizes nested keys' do
           allow(project).to receive(:get_default_parameters) { [build_parameter('target.name')] }
-          expect(subject.with_mr(project, details).size).to eq(0)
+          expect(subject.with_mr(project, mr_details).size).to eq(0)
         end
       end
 
@@ -171,18 +170,18 @@ module GitlabWebHook
         before(:each) { allow(project).to receive(:get_default_parameters) { [build_parameter('not_in_payload', 'default value')] } }
 
         it 'keeps them' do
-          expect(subject.with_mr(project, details)[0].name).to eq('not_in_payload')
+          expect(subject.with_mr(project, mr_details)[0].name).to eq('not_in_payload')
         end
 
         it 'applies default value' do
-          expect(subject.with_mr(project, details)[0].value).to eq('default value')
+          expect(subject.with_mr(project, mr_details)[0].value).to eq('default value')
         end
       end
 
       context 'with empty values' do
         it 'removes them' do
           allow(project).to receive(:get_default_parameters) { [build_parameter('not_in_payload')] }
-          expect(subject.with_mr(project, details).size).to eq(0)
+          expect(subject.with_mr(project, mr_details).size).to eq(0)
         end
       end
     end

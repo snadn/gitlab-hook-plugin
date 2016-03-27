@@ -60,7 +60,7 @@ module GitlabWebHook
     end
 
     def repository_homepage
-      payload["source"] ? payload["source"]["http_url"] : extended["web_url"]
+      payload["source"] ? payload["source"]["homepage"] : extended["web_url"]
     end
 
     private
