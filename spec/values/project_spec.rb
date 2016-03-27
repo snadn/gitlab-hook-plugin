@@ -263,7 +263,7 @@ module GitlabWebHook
 
     context "#matches?(branch='master')" do
       include_context 'details'
-      let(:scm) { GitSCM.new( 'git@example.com:diaspora/diaspora.git' ) }
+      let(:scm) { GitSCM.new( 'git@example.com:mike/diaspora.git' ) }
 
       before (:each) do
         allow(scm).to receive(:branches) { [branch] }
@@ -311,7 +311,7 @@ module GitlabWebHook
 
     context "#matches?(branch='master', exactly=true)" do
       include_context 'details'
-      let(:scm) { GitSCM.new( 'git@example.com:diaspora/diaspora.git' ) }
+      let(:scm) { GitSCM.new( 'git@example.com:mike/diaspora.git' ) }
 
       before (:each) do
         allow(scm).to receive(:branches) { [branch] }

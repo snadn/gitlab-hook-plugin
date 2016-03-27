@@ -53,7 +53,7 @@ module GitlabWebHook
 
         it 'recognizes nested keys' do
           allow(project).to receive(:get_default_parameters) { [build_parameter('repository.url')] }
-          expect(subject.with(project, details)[0].value).to eq('git@example.com:diaspora/diaspora.git')
+          expect(subject.with(project, details)[0].value).to eq('git@example.com:mike/diaspora.git')
         end
 
         it 'recognizes nested array elements' do
@@ -63,7 +63,7 @@ module GitlabWebHook
 
         it 'recognizes deep nested elements' do
           allow(project).to receive(:get_default_parameters) { [build_parameter('commits.0.author.email')] }
-          expect(subject.with(project, details)[0].value).to eq('jsmith@example.com')
+          expect(subject.with(project, details)[0].value).to eq('jordi@softcatala.org')
         end
       end
 

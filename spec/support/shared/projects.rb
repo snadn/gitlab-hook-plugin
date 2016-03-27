@@ -1,8 +1,5 @@
 RSpec.shared_context 'projects' do
-  let(:repo_url) { 'http://example.com/diaspora/diaspora.git' }
-                  # 'http://example.com/diaspora/diaspora',
-  #let(:repo_url) { 'git@example.com:diaspora/diaspora.git' }
-     #             'git@example.com:diaspora/diaspora.git',
+  let(:repo_url) { 'http://example.com/mike/diaspora.git' }
   let(:refspec) { double('RefSpec', matchSource: true) }
   let(:repository) { double('RemoteConfig', name: 'origin', getURIs: [URIish.new(repo_url)], getFetchRefSpecs: [refspec]) }
   let(:build_chooser) { double('BuildChooser') }

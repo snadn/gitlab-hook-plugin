@@ -76,7 +76,7 @@ module GitlabWebHook
       end
 
       context 'and repo namespace matches some template' do
-        let(:templated_groups) { { 'diaspora' => 'repogroup-template' } }
+        let(:templated_groups) { { 'mike' => 'repogroup-template' } }
 
         it 'returns the groupname template' do
           expect(settings).not_to receive(:template_fallback)
