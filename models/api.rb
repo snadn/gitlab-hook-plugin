@@ -55,10 +55,10 @@ module GitlabWebHook
     def process_projects(action)
       details = parse_request
       projects = GetJenkinsProjects.new.matching_uri details
-      if details.classic?
-        messages = details.delete_branch_commit? ? ProcessDeleteCommit.new.with(details, projects) : ProcessCommit.new.with(details, projects, action)
-      else
+      if details.kind == 'merge_request'
         messages = ProcessMergeRequest.new.with(details, projects)
+      else
+        messages = details.delete_branch_commit? ? ProcessDeleteCommit.new.with(details, projects) : ProcessCommit.new.with(details, projects, action)
       end
       logger.info(messages.join("\n"))
       messages.collect { |message| message.gsub("\n", '<br>') }.join("<br>")
@@ -88,7 +88,7 @@ module GitlabWebHook
         msgs.insert( 1,
             "   - repo url: #{details.repository_url}",
             "   - branch: #{details.branch}",
-        ) if details.classic?
+        ) unless details.kind == 'merge_request'
         logger.info(msgs.join("\n"))
       end
     end

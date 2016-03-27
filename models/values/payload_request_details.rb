@@ -3,8 +3,12 @@ require_relative 'request_details'
 module GitlabWebHook
   class PayloadRequestDetails < RequestDetails
     def initialize(payload)
-      @kind = 'webhook'
       @payload = payload || raise(ArgumentError.new("request payload is required"))
+      @kind = payload['object_kind'].nil? ? 'webhook' : payload['object_kind']
+    end
+
+    def valid?
+      kind == 'push' or super
     end
 
     def repository_url

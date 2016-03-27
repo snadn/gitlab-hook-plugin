@@ -5,7 +5,7 @@ module GitlabWebHook
   class RequestDetails < AbstractDetails
 
     def valid?
-      repository_url.to_s.strip.empty? ? false : true
+      ['webhook', 'parameters'].include?(kind) && !repository_url.to_s.strip.empty?
     end
 
     def branch

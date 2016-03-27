@@ -46,10 +46,6 @@ module GitlabWebHook
       payload
     end
 
-    def classic?
-      ['webhook', 'parameters'].include?(kind) && !repository_url.to_s.strip.empty?
-    end
-
     private
 
     def get_payload

@@ -16,10 +16,6 @@ module GitlabWebHook
       end
     end
 
-    it '#classic? is true' do
-      expect(subject.classic?).to eq(false)
-    end
-
     it '#kind is merge request' do
       expect(subject.kind).to eq('merge_request')
     end

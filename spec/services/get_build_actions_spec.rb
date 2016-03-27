@@ -16,7 +16,7 @@ module GitlabWebHook
       let(:parameters_values) { [] }
       before :each do
         allow_any_instance_of(GetParametersValues).to receive(:with).with(project, details) { parameters_values }
-        expect(details).to receive(:classic?) { true }
+        expect(details).to receive(:kind) { 'webhook' }
       end
 
       it 'delegates parameter values build' do
@@ -36,7 +36,7 @@ module GitlabWebHook
       let(:parameters_values) { [] }
       before :each do
         allow_any_instance_of(GetParametersValues).to receive(:with_mr).with(project, details) { parameters_values }
-        expect(details).to receive(:classic?) { false }
+        expect(details).to receive(:kind) { 'merge_request' }
       end
 
       it 'returns parameters action old' do

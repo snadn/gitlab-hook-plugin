@@ -11,10 +11,6 @@ module GitlabWebHook
       end
     end
 
-    it '#classic? is true' do
-      expect(subject.classic?).to eq(true)
-    end
-
     it '#kind is web hook' do
       expect(subject.kind).to eq('webhook')
     end
@@ -87,6 +83,7 @@ module GitlabWebHook
 
       it 'memoizes the result' do
         expect(payload).to receive(:[]).with('commits').once.and_return(payload['commits'])
+        expect(payload).to receive(:[]).with('object_kind').twice.and_return('webhook')
         10.times { subject.commits }
       end
 
