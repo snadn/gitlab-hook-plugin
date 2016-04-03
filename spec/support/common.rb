@@ -14,7 +14,7 @@ def incoming_payload(filename, tempdir, project_name=nil)
   sleep 10
 end
 
-def wait_for(url, xmlpath, waittime=60)
+def wait_for(url, xmlpath, waittime=30)
   count = waittime / 5
   begin
     visit url
@@ -23,7 +23,7 @@ def wait_for(url, xmlpath, waittime=60)
   end until (count-=1).zero?
 end
 
-def wait_idle(waittime=60)
+def wait_idle(waittime=30)
   sleep 5
   begin
     info = JSON.parse Net::HTTP.get URI "http://localhost:8080/computer/api/json"
