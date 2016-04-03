@@ -83,6 +83,9 @@ feature 'GitLab WebHook' do
       visit '/'
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_tag1']")
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_']")
+      wait_idle
+      visit '/job/testrepo'
+      expect(page).not_to have_xpath("//a[@href='/job/testrepo/2/']")
     end
 
     scenario 'Builds a push to master branch' do
