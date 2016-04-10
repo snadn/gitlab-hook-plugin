@@ -308,6 +308,10 @@ feature 'GitLab 8.x' do
   repodirs = [ testrepo8xdir , tagsrepo8xdir , multiscm8xdir , altrepo8xdir , xtrarepo8xdir ]
 
   before(:all) do
+    config = File.read('work/gitlab-hook-GitlabNotifier.xml')
+    File.open('work/gitlab-hook-GitlabNotifier.xml', 'w') do |outfd|
+      outfd.write config.gsub(/localhost:4567/ , 'localhost:14567')
+    end
     [ testrepo8xdir , tagsrepo8xdir , multiscm8xdir , altrepo8xdir , xtrarepo8xdir ].each do |repodir|
       FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), repodir
     end
@@ -324,7 +328,7 @@ feature 'GitLab 8.x' do
       outfd.write File.read('work/jobs/subdirjob/config.xml.erb') % { xtrarepodir: xtrarepo8xdir }
     end
     @server = Jenkins::Server.new
-    @gitlab = GitLabMockup.new repodirs
+    @gitlab = GitLabMockup.new repodirs, 14567
   end
 
   after(:all) do
