@@ -45,7 +45,6 @@ module GitlabWebHook
       raise ArgumentError.new("jenkins project is required") unless jenkins_project
       @jenkins_project = jenkins_project
       @logger = Java.java.util.logging.Logger.getLogger(self.class.name)
-      @matching_scms = []
       @matched_refspecs = []
       setup_scms
       if env_vars
@@ -144,7 +143,7 @@ module GitlabWebHook
     end
 
     def match_scms(details_uri)
-      @matching_scms = scms.select do |scm|
+      @matching_scms ||= scms.select do |scm|
         scm.repositories.find do |repo|
           repo.getURIs().find do |project_repo_uri|
             details_uri.matches?(project_repo_uri)

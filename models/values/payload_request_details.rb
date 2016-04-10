@@ -8,7 +8,7 @@ module GitlabWebHook
     end
 
     def valid?
-      kind == 'push' or super
+      [ 'push' , 'tag_push' ].include?(kind) or super
     end
 
     def repository_url
