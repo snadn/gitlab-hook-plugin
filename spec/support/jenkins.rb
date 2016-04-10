@@ -49,7 +49,7 @@ class Jenkins::Server
 
     begin
       line = log.readline
-      puts " -> #{line}"
+      puts " -> #{line}" if ENV['DEBUG']=='YES'
     end until line.include?('Jenkins is fully up and running')
 
 
@@ -57,19 +57,21 @@ class Jenkins::Server
 
   def kill
     Process.kill 'TERM', job
-    dump log, ' -> '
+    dump log, ' -> ' if ENV['DEBUG']=='YES'
     Process.waitpid job, Process::WNOHANG
   rescue Errno::ECHILD => e
   ensure
-    Dir["#{workdir}/jobs/*/builds/?/log"].each do |file|
-      puts
-      puts "## #{file} ##"
-      puts File.read(file)
-    end
-    Dir["#{workdir}/jobs/*/builds/?/build.xml"].each do |file|
-      puts
-      puts "## #{file} ##"
-      puts File.read(file)
+    if ENV['DEBUG']=='YES'
+      Dir["#{workdir}/jobs/*/builds/?/log"].each do |file|
+        puts
+        puts "## #{file} ##"
+        puts File.read(file)
+      end
+      Dir["#{workdir}/jobs/*/builds/?/build.xml"].each do |file|
+        puts
+        puts "## #{file} ##"
+        puts File.read(file)
+      end
     end
     FileUtils.rm_rf workdir
   end

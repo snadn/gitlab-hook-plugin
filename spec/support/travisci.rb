@@ -18,7 +18,6 @@ module Autologin
         line = fd.readline
       end until line.start_with? 'localhost'
     rescue EOFError => e
-      puts "Adding localhost public key"
       ecdsa = File.read '/etc/ssh/ssh_host_ecdsa_key.pub'
       fd.puts "localhost #{ecdsa}"
     end
@@ -30,7 +29,6 @@ module Autologin
     ssh_dir = File.join ENV['HOME'], '.ssh'
     id_rsa = File.join ssh_dir, 'id_rsa'
     unless File.exists? id_rsa
-      puts "Creating ssh keypair"
      `ssh-keygen -f "#{id_rsa}" -P ""`
     end
     File.open(File.join(ssh_dir, 'authorized_keys'), 'w') do |outfd|

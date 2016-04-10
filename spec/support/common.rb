@@ -35,7 +35,7 @@ end
 
 def download_war(version, warname='jenkins.war')
   return if File.exists? warname
-  puts "Downloading jenkins #{version} ..."
+  puts "Downloading jenkins #{version} ..." if ENV['DEBUG']=='YES'
   if [ "1.532.3" , "1.554.3" , "1.565.3" ].include? version
     file = open "http://ks301030.kimsufi.com/war/#{version}/jenkins.war"
   else
@@ -47,7 +47,7 @@ end
 def download_plugin(name, version, destdir='.')
   plugin = "#{destdir}/#{name}.hpi"
   return if File.exists? plugin
-  puts "Downloading #{name}-#{version} ..."
+  puts "Downloading #{name}-#{version} ..." if ENV['DEBUG']=='YES'
   file = open "http://mirrors.jenkins-ci.org/plugins/#{name}/#{version}/#{name}.hpi?for=ruby-plugin"
   FileUtils.cp file.path, plugin
 end

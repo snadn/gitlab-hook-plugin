@@ -22,7 +22,7 @@ class GitLabMockup
     @server.kill
     @server.join
     $stderr.puts "END MOCKUP"
-    dump @log, ' ## '
+    dump @log, ' ## ' if ENV['DEBUG']=='YES'
   end
 
   def dump(instream, prefix='', outstream=$stdout)
