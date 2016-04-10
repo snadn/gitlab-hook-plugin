@@ -27,7 +27,7 @@ module GitlabWebHook
       copy_from = get_project_to_copy_from(details)
       new_project_name = get_new_project_name(copy_from, details)
       @logger.warning( "Multiple-SCMs project #{copy_from} incompletelly copied onto #{new_project_name}" ) if copy_from.multiscm?
-      new_project_scm = @build_scm.with(copy_from.matched_scm, details)
+      new_project_scm = @build_scm.with(copy_from.matched_scm || copy_from.matching_scms.find.first, details)
       branch_project = nil
 
       Security.impersonate(ACL::SYSTEM) do
@@ -64,7 +64,7 @@ module GitlabWebHook
       get_candidate_projects(details).collect do |copy_from|
         new_project_name = "#{copy_from.name}-mr-#{details.safe_branch}"
         @logger.warning( "Multiple-SCMs project #{copy_from} incompletelly copied onto #{new_project_name}" ) if copy_from.multiscm?
-        cloned_scm = @build_scm.with(copy_from.matched_scm, details)
+        cloned_scm = @build_scm.with(copy_from.matched_scm || copy_from.matching_scms.find.first, details)
         # What about candidates with pre-build merge enabled?
         user_merge_options = UserMergeOptions.new('origin', details.target_branch, 'default')
         cloned_scm.extensions.add PreBuildMerge.new(user_merge_options)
