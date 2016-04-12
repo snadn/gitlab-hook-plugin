@@ -3,14 +3,14 @@ require 'sinatra/json'
 
 class GitLabMockup
 
-  def initialize(repodirs)
+  def initialize(repodirs, port=4567)
     reponames = repodirs.collect{ |dir| File.basename(dir, '.git').split('-').first[0..-9] }
     # We actully hide whole stderr, not only sinatra, but
     # that's better than keep the noise added by request tracing
     @log, err = IO.pipe
     @server = Thread.fork do
       $stderr.reopen err
-      MyServer.start reponames
+      MyServer.start reponames, port
     end
   end
 
@@ -40,10 +40,11 @@ class GitLabMockup
         @@lasts[reponame]
       end
 
-      def start(reponames)
+      def start(reponames, port=4567)
         @@repos = reponames
         @@lasts = {}
         @@urls = {}
+        set :port, port
         run!
       end
 

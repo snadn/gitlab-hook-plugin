@@ -1,0 +1,38 @@
+{
+  "object_kind": "push",
+  "before": "0000000000000000000000000000000000000000",
+  "after": "80a89e1156d5d7e9471c245ccaeafb7bcb49c0a5",
+  "ref": "refs/heads/feature/branch",
+  "user_id": 0,
+  "user_name": "root",
+  "project_id": 0,
+  "project":{
+    "name":"%{reponame}",
+    "description":"",
+    "web_url":"http://localhost/tmp/%{reponame}",
+    "avatar_url":null,
+    "git_ssh_url":"localhost:%{repodir}",
+    "git_http_url":"http://localhost/tmp/%{reponame}.git",
+    "namespace":"Mike",
+    "visibility_level":0,
+    "path_with_namespace":"tmp/%{reponame}",
+    "default_branch":"master",
+    "homepage":"http://localhost/tmp/%{reponame}",
+    "url":"localhost:%{repodir}",
+    "ssh_url":"localhost:%{repodir}",
+    "http_url":"http://localhost/tmp/%{reponame}.git"
+  },
+  "repository": {
+    "name": "%{reponame}",
+    "url": "localhost:%{repodir}",
+    "description": "",
+    "homepage": "http://localhost/tmp/%{reponame}",
+    "git_http_url":"http://localhost/tmp/%{reponame}.git",
+    "git_ssh_url":"localhost:%{repodir}",
+    "visibility_level":0
+  },
+  "commits": [
+
+  ],
+  "total_commits_count": 0
+}

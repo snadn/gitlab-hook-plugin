@@ -12,11 +12,31 @@ module GitlabWebHook
       end
     end
 
-    context 'when building actions' do
+    context 'when building 7.x actions' do
       let(:parameters_values) { [] }
       before :each do
         allow_any_instance_of(GetParametersValues).to receive(:with).with(project, details) { parameters_values }
         expect(details).to receive(:kind) { 'webhook' }
+      end
+
+      it 'delegates parameter values build' do
+        subject.with(project, details)
+      end
+
+      it 'returns parameters action' do
+        expect(subject.with(project, details).java_kind_of?(ParametersAction)).to be
+      end
+
+      it 'parameters action contain parameters values' do
+        expect(subject.with(project, details).getParameters()).to eq(parameters_values)
+      end
+    end
+
+    context 'when building 8.x actions' do
+      let(:parameters_values) { [] }
+      before :each do
+        allow_any_instance_of(GetParametersValues).to receive(:with).with(project, details) { parameters_values }
+        expect(details).to receive(:kind) { 'push' }
       end
 
       it 'delegates parameter values build' do

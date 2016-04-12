@@ -1,0 +1,47 @@
+{
+  "object_kind": "push",
+  "before": "80a89e1156d5d7e9471c245ccaeafb7bcb49c0a5",
+  "after": "ba46b858929aec55a84a9cb044e988d5d347b8de",
+  "ref": "refs/heads/feature/branch",
+  "user_id": 0,
+  "user_name": "root",
+  "project_id": 0,
+  "project":{
+    "name":"%{reponame}",
+    "description":"",
+    "web_url":"http://localhost/tmp/%{reponame}",
+    "avatar_url":null,
+    "git_ssh_url":"localhost:%{repodir}",
+    "git_http_url":"http://localhost/tmp/%{reponame}.git",
+    "namespace":"Mike",
+    "visibility_level":0,
+    "path_with_namespace":"tmp/%{reponame}",
+    "default_branch":"master",
+    "homepage":"http://localhost/tmp/%{reponame}",
+    "url":"localhost:%{repodir}",
+    "ssh_url":"localhost:%{repodir}",
+    "http_url":"http://localhost/tmp/%{reponame}.git"
+  },
+  "repository": {
+    "name": "%{reponame}",
+    "url": "localhost:%{repodir}",
+    "description": "",
+    "homepage": "http://localhost/tmp/%{reponame}",
+    "git_http_url":"http://localhost/tmp/%{reponame}.git",
+    "git_ssh_url":"localhost:%{repodir}",
+    "visibility_level":0
+  },
+  "commits": [
+    {
+      "id": "ba46b858929aec55a84a9cb044e988d5d347b8de",
+      "message": "Commit on branch\n",
+      "timestamp": "2015-03-14T23:27:09+01:00",
+      "url": "http://localhost/tmp/%{reponame}/commit/ba46b858929aec55a84a9cb044e988d5d347b8de",
+      "author": {
+        "name": "root",
+        "email": "root@localhost"
+      }
+    }
+  ],
+  "total_commits_count": 1
+}
