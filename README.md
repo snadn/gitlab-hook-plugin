@@ -35,9 +35,19 @@ It will then scan all Git projects in Jenkins and start the build for those that
 
 Notes:
 
-* for branch comparison, it will take into account both the branch definition and the strategy (this is different from the original notifyCommit)
+* for branch comparison, it will take into account both the branch definition, the strategy and refspecs if defined (this is different from the original notifyCommit)
 * the project must be enabled
 * you don't have to setup polling for the project
+
+### Triggering a specific job
+
+In case that payload parsing and automatic processing don't fit your need, it is still possible to setup the GitLab webhook to trigger a specific project as
+
+```
+http://your-jenkins-server/gitlab/build_now/project_name
+```
+
+When the hook is executed, the specified project will be triggered whichever way it is configured. In particular, neither the branch nor even the git url on payload must match those configured in the project. A typical use case is to get a simple method for tag building (taking advantage the fine grained available webhooks), or to trigger complex pipelines in jenkins, maybe using _multijob_ or _clone workspace_ plugins (look for example at [JENKINS-29317](https://issues.jenkins-ci.org/browse/JENKINS-29317) or [JENKINS-29283](https://issues.jenkins-ci.org/browse/JENKINS-29283) which motivated this feature).
 
 #### Parameterized projects
 
