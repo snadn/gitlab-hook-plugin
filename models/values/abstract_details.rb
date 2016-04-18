@@ -46,6 +46,10 @@ module GitlabWebHook
       payload
     end
 
+    def user_name
+      payload["user_name"] || ""
+    end
+
     private
 
     def get_payload

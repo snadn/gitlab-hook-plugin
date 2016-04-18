@@ -7,6 +7,7 @@ Jenkins::Plugin::Specification.new do |plugin|
   plugin.url = 'https://wiki.jenkins-ci.org/display/JENKINS/Gitlab+Hook+Plugin'
   plugin.developed_by "javiplx", "Javier Palacios <javiplx@gmail.com>"
   plugin.developed_by "elvanja", "Vanja Radovanovic <elvanja@gmail.com>"
+  plugin.developed_by "hughepaul", "Paul Winkler <github@paulwinkler.co.uk>"
   plugin.uses_repository :github => "jenkinsci/gitlab-hook-plugin"
 
   plugin.depends_on 'ruby-runtime', '0.12'

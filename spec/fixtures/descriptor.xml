@@ -6,6 +6,7 @@
   <master_branch>primary</master_branch>
   <use_master_project_name>true</use_master_project_name>
   <description>Alternate description</description>
+  <ignore_users>user1, user2, user3</ignore_users>
   <template>default_project</template>
   <templates>
     <template>
