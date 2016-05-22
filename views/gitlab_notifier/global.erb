@@ -8,7 +8,7 @@
     end
 
     f.entry :title => 'Gitlab token', :field => 'token' do
-      f.textbox :default => "#{descriptor.token}"
+      f.password :value => "#{descriptor.token}"
     end
 
     f.entry :title => 'Send notification as commit statuses', :field => 'commit_status' do
