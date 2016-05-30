@@ -13,7 +13,7 @@ GEM
       json
       slop (~> 3.0.2)
     jenkins-war (1.514)
-    jpi (0.4.0)
+    jpi (0.4.1)
       bundler
       jenkins-plugin-runtime (~> 0.2.3)
       jenkins-war (> 1.427)
