@@ -65,10 +65,15 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
 
   class GitlabNotifierDescriptor < Jenkins::Model::DefaultDescriptor
 
+    java_import Java.hudson.util.Secret
     java_import Java.hudson.BulkChange
     java_import Java.hudson.model.listeners.SaveableListener
 
-    attr_reader :gitlab_url, :token
+    attr_reader :gitlab_url
+
+    def token
+      @token.get_plain_text
+    end
 
     def commit_status?
       @commit_status == 'true'
@@ -89,7 +94,7 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
       xmldoc = REXML::Document.new(xmlfile)
       if xmldoc.root
         @gitlab_url = xmldoc.root.elements['gitlab_url'].text
-        @token = xmldoc.root.elements['token'].text
+        @token = Secret.fromString xmldoc.root.elements['token'].text
         @commit_status = xmldoc.root.elements['commit_status'].nil? ? 'false' : xmldoc.root.elements['commit_status'].text
         @mr_status_only = xmldoc.root.elements['mr_status_only'].nil? ? 'true' : xmldoc.root.elements['mr_status_only'].text
       end
@@ -107,7 +112,7 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
       doc.add_element( 'hudson.model.Descriptor' , { "plugin" => "gitlab-notifier" } )
 
       doc.root.add_element( 'gitlab_url' ).add_text( gitlab_url )
-      doc.root.add_element( 'token' ).add_text( token )
+      doc.root.add_element( 'token' ).add_text( @token.get_encrypted_value )
       doc.root.add_element( 'commit_status' ).add_text( @commit_status )
       doc.root.add_element( 'mr_status_only' ).add_text( @mr_status_only )
 
@@ -128,7 +133,7 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
 
     def parse(form)
       @gitlab_url = form["gitlab_url"]
-      @token = form['token']
+      @token = Secret.fromString form['token']
       @commit_status = form['commit_status'] ? 'true' : 'false'
       @mr_status_only = form['mr_status_only'] ? 'true' : 'false'
     end
