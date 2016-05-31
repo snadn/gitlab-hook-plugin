@@ -12,6 +12,8 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
   MASTER_BRANCH_PROPERTY = 'master_branch'
   USE_MASTER_PROJECT_NAME_PROPERTY = 'use_master_project_name'
   DESCRIPTION_PROPERTY = 'description'
+  IGNORE_USERS = 'ignore_users'
+  DEFAULT_IGNORE_USERS = ''
 
   def initialize(*args)
     super
@@ -51,6 +53,7 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
 
     doc = REXML::Document.new(File.new(configFile.file.canonicalPath))
     if doc.root
+      @ignore_usernames             = read_property(doc, IGNORE_USERS, DEFAULT_IGNORE_USERS)
       @merge_request_processing     = read_property(doc, MERGE_REQUEST_PROCESSING, "true") == "true"
       @merged_branch_triggering     = read_property(doc, MERGED_BRANCH_PROCESSING, "false") == "true"
       @automatic_project_creation   = read_property(doc, AUTOMATIC_PROJECT_CREATION_PROPERTY) == "true"
@@ -80,6 +83,7 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
     write_property(doc, MASTER_BRANCH_PROPERTY, master_branch)
     write_property(doc, USE_MASTER_PROJECT_NAME_PROPERTY, use_master_project_name?)
     write_property(doc, DESCRIPTION_PROPERTY, description)
+    write_property(doc, IGNORE_USERS, ignore_users)
 
     doc.root.add_element( 'template' ).add_text( template_fallback )
 
@@ -122,9 +126,14 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
     @template
   end
 
+  def ignore_users
+    @ignore_usernames || DEFAULT_IGNORE_USERS
+  end
+
   private
 
   def parse(form)
+    @ignore_usernames         = form[IGNORE_USERS]
     @merge_request_processing = form[MERGE_REQUEST_PROCESSING] ? true : false
     @merged_branch_triggering = form[MERGED_BRANCH_PROCESSING] ? true : false
     @automatic_project_creation = form[AUTOMATIC_PROJECT_CREATION_PROPERTY] ? true : false

@@ -1,6 +1,16 @@
 require 'spec_helper'
 
 describe GitlabWebHookRootActionDescriptor do
+    context 'with ignore users' do
+      it 'defines it' do
+        expect(subject).to respond_to(:ignore_users)
+      end
+
+      it 'has default' do
+        expect(subject.ignore_users).to eq('')
+      end
+    end
+
     context 'whether automatic project creation is enabled' do
       it 'defines it' do
         expect(subject).to respond_to(:automatic_project_creation?)

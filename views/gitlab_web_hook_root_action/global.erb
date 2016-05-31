@@ -2,6 +2,10 @@
   f = taglib("/lib/form")
   f.section(:title => "Gitlab Web Hook") do
 
+    f.entry :title => 'Ignore actions by git usernames', :field => 'ignore_users' do
+      f.textbox :default => "#{descriptor.ignore_users}"
+    end
+
     f.entry :title => "Create new projects for merge requests", :field => 'merge_request_processing' do
       f.checkbox :checked => "#{descriptor.merge_request_processing?}"
     end

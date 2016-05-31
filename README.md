@@ -245,3 +245,20 @@ instance and executes the acceptance tests.
 
 No special options are required to execute the test on recent JRuby versions (such as 1.7.18)
 
+## Development
+
+Locally building:
+- Download latest stable jruby tar
+- Extract and add bin/ directory to your $PATH
+- To install run:
+-- `export GEM_HOME=~/.ruby/gems`
+-- `bundle install --path work/vendor/bundle`
+- To build run `jpi build`
+
+To test locally in Jenkins
+- Download latest Jenkins distribution
+- Extract and run `java -jar jenkins.war`
+- Upload `pkg/gitlab-hook-nojenkinscommits.hpi` into Jenkins manual install interface
+
+Example post bodies are available on the [gitlab webhook page](https://gitlab.com/gitlab-org/gitlab-ce/blob/master/doc/web_hooks/web_hooks.md)
+

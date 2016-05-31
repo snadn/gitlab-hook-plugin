@@ -9,6 +9,7 @@ require_relative 'use_cases/process_delete_commit'
 require_relative 'use_cases/process_merge_request'
 require_relative 'services/get_jenkins_projects'
 require_relative 'services/parse_request'
+require_relative 'services/check_git_details'
 
 java_import Java.org.jruby.exceptions.RaiseException
 
@@ -54,6 +55,11 @@ module GitlabWebHook
 
     def process_projects(action)
       details = parse_request
+
+      if errors = CheckGitDetails.new.with(details)
+        return errors
+      end
+
       projects = GetJenkinsProjects.new.matching_uri details
       if details.kind == 'merge_request'
         messages = ProcessMergeRequest.new.with(details, projects)
