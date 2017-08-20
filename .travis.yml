@@ -7,7 +7,6 @@ env:
 jdk:
   - oraclejdk8
   - openjdk7
-  - openjdk6
 rvm:
   - ruby
   - jruby-19mode # JRuby in 1.9 mode
