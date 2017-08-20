@@ -329,7 +329,6 @@ feature 'GitLab 7.x' do
 
 end
 
-if ENV['JENKINS_VERSION'] != '1.596.3'
 feature 'GitLab 8.x' do
 
   testrepo8xdir = Dir.mktmpdir [ 'testrepo8x' , '.git' ]
@@ -625,5 +624,3 @@ feature 'GitLab 8.x' do
   end
 
 end
-end
-
