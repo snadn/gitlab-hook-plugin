@@ -14,3 +14,4 @@ matrix:
     - env: JENKINS_VERSION=latest
       jdk: openjdk7
 sudo: false
+dist: precise
