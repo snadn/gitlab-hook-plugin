@@ -1,10 +1,17 @@
 language: ruby
 env:
-  - JENKINS_VERSION=1.596.3
-  - JENKINS_VERSION=1.609.3
-  - JENKINS_VERSION=1.625.3
+  - JENKINS_VERSION=1.651.3
+  - JENKINS_VERSION=2.46.3
+  - JENKINS_VERSION=2.60.3
   - JENKINS_VERSION=latest
 rvm:
   - ruby
   - jruby-19mode # JRuby in 1.9 mode
+matrix:
+  exclude:
+    - env: JENKINS_VERSION=2.60.3
+      jdk: openjdk7
+    - env: JENKINS_VERSION=latest
+      jdk: openjdk7
 sudo: false
+dist: precise
