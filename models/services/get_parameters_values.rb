@@ -5,6 +5,7 @@ java_import Java.hudson.model.StringParameterValue
 
 module GitlabWebHook
   class GetParametersValues
+  java_import Java.java.util.logging.Level
     def with(project, details)
       raise ArgumentError.new('project is required') unless project
       raise ArgumentError.new('details are required') unless details
@@ -19,6 +20,9 @@ module GitlabWebHook
     def with_mr(project, details)
       raise ArgumentError.new('project is required') unless project
       raise ArgumentError.new('details are required') unless details
+
+      logger.info(project.to_s)
+      logger.info(details.to_s)
 
       project.get_default_parameters.collect do |parameter|
         from_payload(parameter, details.payload) || parameter.getDefaultParameterValue()
@@ -52,8 +56,13 @@ module GitlabWebHook
       # TODO possibly support other types as well?
       return nil unless parameter.java_kind_of?(StringParameterDefinition)
 
-      value = payload.find { |key, _| key.downcase == parameter.name.downcase }.to_a[1]
+      value = payload.find do |key, _|
+        key.downcase == parameter.name.downcase
+      end.to_a[1]
       value.nil? ? value : StringParameterValue.new(parameter.name, value.to_s.strip)
+    end
+    def logger
+      @logger ||= Java.java.util.logging.Logger.getLogger(Api.class.name)
     end
   end
 end

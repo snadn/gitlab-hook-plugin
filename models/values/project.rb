@@ -47,7 +47,7 @@ module GitlabWebHook
       @logger = Java.java.util.logging.Logger.getLogger(self.class.name)
       @matched_refspecs = []
       setup_scms
-      if env_vars
+      if env_vars && env_vars.has_key?('GIT_URL')
         repository_uri = RepositoryUri.new(env_vars['GIT_URL'])
         match_scms(repository_uri)
         # On merges, GIT_BRANCH is not set
@@ -214,14 +214,14 @@ module GitlabWebHook
 
     def setup_scms
       @scms = []
-      if jenkins_project.scm
-        if jenkins_project.scm.java_kind_of?(GitSCM)
-          @scms << jenkins_project.scm
-        elsif MultipleScmsPluginAvailable && jenkins_project.scm.java_kind_of?(MultiSCM)
-          @multiscm = true
-          @scms.concat(jenkins_project.scm.getConfiguredSCMs().select { |scm| scm.java_kind_of?(GitSCM) })
-        end
-      end
+      # if jenkins_project.SCMs
+      #   if jenkins_project.SCMs.java_kind_of?(GitSCM)
+      #     @scms << jenkins_project.SCMs
+      #   elsif MultipleScmsPluginAvailable && jenkins_project.SCMs.java_kind_of?(MultiSCM)
+      #     @multiscm = true
+      #     @scms.concat(jenkins_project.SCMs.getConfiguredSCMs().select { |scm| scm.java_kind_of?(GitSCM) })
+      #   end
+      # end
     end
   end
 end
